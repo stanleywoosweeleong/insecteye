@@ -71,7 +71,7 @@ header #bSub{margin:3px 0 0;font-size:0.9rem;color:var(--mute);font-weight:500;l
   font-size:0.96rem;font-weight:600;color:var(--bone);background:var(--ink2);
   white-space:nowrap;
 }
-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 10px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:18px 0 12px}
 nav button{
   min-height:44px;
   display:flex;align-items:center;justify-content:center;text-align:center;
@@ -129,7 +129,7 @@ input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
 .rechead{display:flex;align-items:center;gap:8px;margin-top:18px;
   font-size:0.9rem;font-weight:600;color:var(--mute)}
 #recCurves{display:block;width:100%;height:4rem;margin-top:8px;
-  background:var(--ink3);border-radius:8px;
+  background:transparent;border-radius:8px;
   touch-action:none;cursor:ew-resize;user-select:none;-webkit-user-select:none}
 .bar{touch-action:none;cursor:ew-resize;user-select:none;-webkit-user-select:none}
 .rec{margin-top:10px}
@@ -254,7 +254,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.0.5-20260901';
+var CACHE_VERSION = 'insecteye-v4.0.8-20260901';
 var LANG = 'zh';
 var FS = 'm';
 var FS_STEPS = ['m','l','xl'];
@@ -1335,7 +1335,7 @@ var MECH = [
 {
  zh:'夜间「趋光」其实是背光反射失灵', en:'Night "phototaxis" is a hijacked orientation reflex',
  tier:'measured',
- bodyZh:'2024 年的三维飞行轨迹研究（实验室动作捕捉＋哥斯达黎加野外立体摄影）发现：昆虫并不朝光源转向，而是把背部转向光源，结果飞出与光源垂直的航线。这叫背光反射——在自然界，最亮的半球就是天空，背朝它就知道哪边是上。人造光源把这个基准打乱，于是出现绕圈、失速、翻转。「escape to light」和「月亮导航」两套旧解释都被这批数据排除了。',
+ bodyZh:'2024 年的三维飞行轨迹研究（实验室动作捕捉＋哥斯达黎加野外立体摄影）发现：昆虫并不朝光源转向，而是把背部转向光源，结果飞出与光源垂直的航线。这叫背光反射——在自然界，最亮的半球就是天空，背朝它就知道哪边是上。人造光源把这个基准打乱，于是出现绕圈、失速、翻转。「向光逃生」和「月亮导航」两套旧解释都被这批数据排除了。',
  bodyEn:'The 2024 three-dimensional flight-path study — lab motion capture plus stereo videography in Costa Rica — found that insects do not steer toward light. They turn their dorsum toward it, producing flight paths perpendicular to the source. This is the dorsal light response: in nature the brightest hemisphere is the sky, so backing onto it tells them which way is up. An artificial source corrupts that reference, producing the orbiting, stalling and inverting. The older "escape to light" and "lunar navigation" explanations were both ruled out by this data.',
  soZh:'三条推论：诱虫灯是短距离装置，困住飞近的虫而不是把远处的虫拉过来，所以「一盏灯覆盖 N 英亩」的算法不成立；灯的位置比功率重要，应该放在虫源方向而不是园子中央；避虫照明最有效的一步是遮光罩和向下打光，其次才是换灯泡颜色。',
  soEn:'Three consequences. A trap lamp is short-range — it traps what flies close rather than drawing insects in, so "one lamp covers N acres" does not hold. Placement beats wattage: site lamps toward the source, not in the middle of the block. And for keeping insects away, shielding and aiming downward do more than changing the bulb colour.'
