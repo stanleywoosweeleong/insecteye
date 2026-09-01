@@ -254,7 +254,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.0.0-20260901';
+var CACHE_VERSION = 'insecteye-v4.0.2-20260901';
 var LANG = 'zh';
 var FS = 'm';
 var FS_STEPS = ['m','l','xl'];
@@ -1311,8 +1311,8 @@ var MECH = [
 {
  zh:'复眼里的三类受体', en:'Three receptor classes in the compound eye',
  tier:'measured',
- bodyZh:'多数昆虫是紫外–蓝–绿三色型，受体峰值大致落在 350、440、530 nm 附近。这套配置在昆虫里相当保守：熊蜂实测 347／424／539 nm，蚜虫约 330、490、530 nm，白粉虱的 ERG 峰值在约 340 与 520 nm。少数类群多出第四类——某些蝴蝶有对长波敏感的红受体，把可见范围往红端延伸。',
- bodyEn:'Most insects are UV-blue-green trichromats with receptor peaks near 350, 440 and 530 nm. The layout is conservative across the class: bumblebees measure at 347/424/539 nm, aphids near 330, 490 and 530, and whitefly ERG peaks sit near 340 and 520. A minority add a fourth class — some butterflies carry a long-wavelength red receptor extending their range toward the red end.',
+ bodyZh:'多数昆虫是紫外–蓝–绿三色型，受体峰值大致落在 350、440、530 nm 附近。这套配置在昆虫里相当保守：熊蜂实测 347／424／539 nm，蚜虫约 330、490、530 nm，白粉虱的视网膜电图（ERG，在眼表记录电信号）峰值在约 340 与 520 nm。少数类群多出第四类——某些蝴蝶有对长波敏感的红受体，把可见范围往红端延伸。',
+ bodyEn:'Most insects are UV-blue-green trichromats with receptor peaks near 350, 440 and 530 nm. The layout is conservative across the class: bumblebees measure at 347/424/539 nm, aphids near 330, 490 and 530, and whitefly electroretinogram (ERG, voltage recorded at the eye surface) peaks sit near 340 and 520. A minority add a fourth class — some butterflies carry a long-wavelength red receptor extending their range toward the red end.',
  soZh:'由此推出一条硬性限制：红光（>620 nm）对绝大多数昆虫近乎不存在。不是因为红光弱，而是因为它们没有接收红光的受体。',
  soEn:'That yields a hard constraint: red light beyond 620 nm barely exists for most insects — not because red is weak, but because they have no receptor to catch it.'
 },
@@ -1351,8 +1351,8 @@ var MECH = [
 {
  zh:'感光峰值 ≠ 最佳诱捕颜色', en:'Receptor peak is not best trap colour',
  tier:'mech',
- bodyZh:'这是读任何一张光谱表时最该带着的一条。受体峰值是生理量，由电生理测出来；最佳诱捕颜色是行为量，由田间或选择试验测出来。两者经常不一样，而且不一样是有原因的：绿受体峰值在 530 nm，最好的黏板却是 560–600 nm 的黄。补上关键一步：<b>530 nm 处蓝受体还没归零</b>，负输入仍在扣分；到 585 nm，绿受体只降了一些，蓝受体却几乎降到零——所以比值在绿峰之外才达到最大。到「光谱」页把光标从 530 拖到 585，看蓝色那条曲线塌下去，就是这一步。',
- bodyEn:'Carry this into any spectral table you read. Receptor peak is a physiological quantity measured by electrophysiology; best trap colour is a behavioural quantity measured in field or choice tests. They routinely differ, and the difference has a cause: the green receptor peaks at 530 nm while the best card is 560–600 nm yellow. The step that closes the gap: <b>at 530 nm the blue receptor has not yet reached zero</b>, so the negative input is still subtracting; by 585 nm green has dropped only somewhat while blue has collapsed almost entirely — which is why the ratio peaks beyond the green peak. Drag the cursor from 530 to 585 on the Spectrum tab and watch the blue curve fall away: that is this step, drawn.',
+ bodyZh:'这是读任何一张光谱表时最该带着的一条。受体峰值是生理量，由电生理（记录眼睛对各波长的电信号）测出来；最佳诱捕颜色是行为量，由田间或选择试验测出来。两者经常不一样，而且不一样是有原因的：绿受体峰值在 530 nm，最好的黏板却是 560–600 nm 的黄。补上关键一步：<b>530 nm 处蓝受体还没归零</b>，负输入仍在扣分；到 585 nm，绿受体只降了一些，蓝受体却几乎降到零——所以比值在绿峰之外才达到最大。到「光谱」页把光标从 530 拖到 585，看蓝色那条曲线塌下去，就是这一步。',
+ bodyEn:'Carry this into any spectral table you read. Receptor peak is a physiological quantity measured by electrophysiology — recording the eye\'s electrical response to each wavelength; best trap colour is a behavioural quantity measured in field or choice tests. They routinely differ, and the difference has a cause: the green receptor peaks at 530 nm while the best card is 560–600 nm yellow. The step that closes the gap: <b>at 530 nm the blue receptor has not yet reached zero</b>, so the negative input is still subtracting; by 585 nm green has dropped only somewhat while blue has collapsed almost entirely — which is why the ratio peaks beyond the green peak. Drag the cursor from 530 to 585 on the Spectrum tab and watch the blue curve fall away: that is this step, drawn.',
  soZh:'任何一张把两者放进同一列的表，都会在某个地方出错。本软件把它们分开列：虫谱页的「感光峰值」是前者，波段反应和选灯选板页是后者。',
  soEn:'Any table that puts both in one column will be wrong somewhere. They are kept apart here: the "Receptor peaks" line on each insect card is the first quantity; the band responses and the trap picker are the second.'
 },
@@ -1506,7 +1506,7 @@ function renderRefs(){
     + '<p class="note">'+(LANG==='zh'
       ? '扫码打开在线版。第一次打开后就能离线使用；在浏览器菜单选「安装」或「加到主屏幕」，它会像普通软件一样出现在桌面上。'
       : 'Scan to open the online copy. After the first load it works offline; choose Install or Add to Home Screen in the browser menu and it sits on the home screen like any other app.')+'</p>'
-    + '<p class="note sub" style="word-break:break-all">stanleywoosweeleong.github.io/insecteye</p>'
+    + '<p class="note sub" style="word-break:break-all">stanleywoosweeleong.github.io/insecteye/</p>'
     + '</div></div></div>'
     + '<p class="lede">'+(LANG==='zh'
     ? '本软件里的每一条内容都能追到下面某一项，追不到的没有写进来。<b>蓝色的条目可以点开原文</b>；其余的没有稳定链接，只能按标题检索。另外注意：下面既有同行评审的论文，也有推广机构的实务指引——后者通常不标年份，可靠性也不同，正文里的证据等级已经区分过。'
