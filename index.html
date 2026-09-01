@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1119">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="虫眼光谱">
+<title>虫眼光谱 · 昆虫视觉与趋光实验室</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1119'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23b98cff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23f2d64b'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ink:#0d1017;
+  --ink2:#181e2c;
+  --ink3:#222a3a;
+  --line:#39435c;
+  --bone:#f5f3ed;
+  --mute:#c9d1e3;
+  --uv:#b083ff;
+  --blu:#6fa3ff;
+  --grn:#5ad79c;
+  --yel:#f7cf52;
+  --org:#f79a4e;
+  --red:#f0716a;
+  --ok:#5ad79c;
+  --warn:#f7cf52;
+  --bad:#f0716a;
+  --radius:12px;
+}
+html{font-size:18px;-webkit-text-size-adjust:100%}
+html.fs-l{font-size:20.5px}
+html.fs-xl{font-size:23px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink);
+  color:var(--bone);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  font-size:1rem;line-height:1.72;font-weight:450;letter-spacing:.01em;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+h1,h2,h3{font-family:Georgia,"Songti SC","Noto Serif CJK SC","Times New Roman",serif;font-weight:700;line-height:1.3;margin:0}
+a{color:var(--blu)}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--yel);outline-offset:2px;border-radius:6px}
+
+/* ---------- shell ---------- */
+header{
+  position:sticky;top:0;z-index:40;
+  background:rgba(13,16,23,.96);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:calc(12px + env(safe-area-inset-top)) 14px 0;
+}
+.brandrow{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap}
+.brandrow h1{font-size:1.55rem;letter-spacing:.5px;line-height:1.2;min-width:0}
+header #bSub{margin:3px 0 0;font-size:0.9rem;color:var(--mute);font-weight:500;line-height:1.3}
+.ctrls{display:flex;gap:6px;flex:none;padding-bottom:2px}
+.ctrls #fsbtn{display:flex;align-items:baseline;gap:3px;padding:6px 15px 7px;line-height:1}
+.ctrls #fsbtn .fsref{font-size:.72em;opacity:.5;font-weight:700}
+.ctrls #fsbtn .fscur{font-weight:700;transition:font-size .12s ease}
+#fsbtn.fs-m .fscur{font-size:1em}
+#fsbtn.fs-l .fscur{font-size:1.3em}
+#fsbtn.fs-xl .fscur{font-size:1.62em}
+.ctrls button{
+  border:1px solid var(--line);border-radius:999px;padding:8px 16px;
+  font-size:0.96rem;font-weight:600;color:var(--bone);background:var(--ink2);
+  white-space:nowrap;
+}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0 10px}
+nav button{
+  min-height:44px;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:6px 3px;border:1px solid var(--line);border-radius:10px;
+  background:var(--ink2);color:var(--mute);
+  /* nav is chrome, not reading content: it sizes to the viewport, not to the
+     Aa setting, so eight labels always fit without scrolling */
+  font-size:clamp(13px, 3.5vw, 16px);font-weight:600;line-height:1.2;
+  overflow-wrap:anywhere;
+}
+nav button.on{
+  background:var(--yel);border-color:var(--yel);color:#0d1017;font-weight:700;
+}
+@media(min-width:620px){
+  nav button{min-height:3rem;font-size:1.02rem}
+}
+main{padding:18px 14px 60px;max-width:760px;margin:0 auto}
+section{display:none}
+section.on{display:block}
+
+/* ---------- generic ---------- */
+.card{background:var(--ink2);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h3{font-size:1.08rem;margin-bottom:8px}
+.lede{color:var(--mute);font-size:0.94rem;font-weight:450;margin:0 0 16px}
+.sub{color:var(--mute);font-size:0.88rem}
+.hr{height:1px;background:var(--line);margin:14px 0}
+ul.tight{margin:10px 0 0;padding-left:20px;font-size:0.94rem}
+ul.tight li{margin-bottom:8px}
+.kv{display:flex;gap:10px;font-size:0.9rem;padding:6px 0;border-bottom:1px dotted var(--line)}
+.kv:last-child{border-bottom:0}
+.kv b{flex:0 0 6.2em;color:var(--mute);font-weight:600}
+
+/* evidence badges */
+.ev{display:inline-block;font-size:0.88rem;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid;vertical-align:middle;white-space:nowrap;line-height:1.6}
+.ev-measured{color:#8bf0c1;border-color:#3a8564;background:#12291f}
+.ev-field{color:#a3c4ff;border-color:#3f5888;background:#151c2c}
+.ev-mech{color:#e2c9ff;border-color:#674592;background:#1e1729}
+.ev-schem{color:var(--mute);border-color:var(--line);background:var(--ink3)}
+.ev-wrong{color:#ffb0a8;border-color:#96443c;background:#2c1614}
+
+/* ---------- spectrum scrubber ---------- */
+.scrub{background:var(--ink2);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.nmbig{font-family:Georgia,serif;font-size:2.9rem;font-weight:700;line-height:1;letter-spacing:-1px}
+.nmbig small{font-size:1rem;color:var(--mute);letter-spacing:0;margin-left:5px;font-weight:600}
+.bandname{margin-top:6px;min-height:4.05rem}
+.bandname b{display:block;font-size:1.08rem;font-weight:700;color:var(--bone);line-height:1.35}
+.bandname span{display:block;font-size:0.9rem;font-weight:500;color:var(--mute);line-height:1.4;
+  margin-top:2px;min-height:2.8em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bar{position:relative;height:30px;border-radius:6px;margin:16px 0 6px;overflow:hidden}
+.bar .tick{position:absolute;top:0;bottom:0;width:3px;background:#fff;box-shadow:0 0 0 1px #000}
+input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
+.axis{display:flex;justify-content:space-between;font-size:0.92rem;font-weight:600;color:var(--bone);margin-top:4px}
+
+.rechead{display:flex;align-items:center;gap:8px;margin-top:18px;
+  font-size:0.9rem;font-weight:600;color:var(--mute)}
+#recCurves{display:block;width:100%;height:4rem;margin-top:8px;
+  background:var(--ink3);border-radius:8px;
+  touch-action:none;cursor:ew-resize;user-select:none;-webkit-user-select:none}
+.bar{touch-action:none;cursor:ew-resize;user-select:none;-webkit-user-select:none}
+.rec{margin-top:10px}
+.recrow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.recrow span.nm{flex:0 0 8.8em;min-width:0}
+.recrow span.nm b{display:block;font-size:1rem;font-weight:700;color:var(--bone);line-height:1.3}
+.recrow span.nm i{display:block;font-style:normal;font-size:0.9rem;font-weight:500;color:var(--mute);line-height:1.3}
+.recbar{flex:1;height:14px;background:var(--ink3);border-radius:7px;overflow:hidden}
+.recbar i{display:block;height:100%;border-radius:7px;transition:width .12s linear}
+.recrow em{flex:0 0 4.4em;text-align:right;font-size:0.94rem;font-style:normal;font-weight:700;color:var(--bone)}
+
+.hitlist{margin-top:12px}
+.hit{display:flex;align-items:baseline;gap:9px;padding:7px 0 7px 2px}
+.hit .dots{flex:0 0 3.1em;letter-spacing:1px;font-size:1rem}
+.hit .nmz{flex:1;font-size:0.94rem;font-weight:500}
+.covgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
+.covcell{border:2px solid var(--line);border-radius:10px;overflow:hidden;background:var(--ink2);
+  padding:0;display:flex;flex-direction:column}
+.covcell.on{border-color:var(--bone)}
+.covsvg{display:block;width:100%;height:60px}
+.covpc{padding:6px 0;font-size:0.92rem;font-weight:700;color:var(--mute)}
+.covcell.on .covpc{color:var(--ink);background:var(--bone)}
+.card.cov-ok{border-color:#3a8564}
+.card.cov-warn{border-color:#7a6427}
+.card.cov-bad{border-color:#96443c}
+.mgroup{margin-top:14px}
+.mgroup:first-child{margin-top:4px}
+.mghead{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  padding:9px 0;border-top:1px solid var(--line)}
+.mgname{font-size:0.98rem;font-weight:700;color:var(--bone)}
+.mgcount{font-size:0.8rem;font-weight:700;color:var(--mute);background:var(--ink3);
+  border-radius:999px;padding:1px 9px}
+.chev{margin-left:auto;flex:none;display:flex;align-items:center;justify-content:center;
+  width:1.9em;height:1.9em;border-radius:50%;border:1px solid var(--line);color:var(--mute);
+  transition:transform .18s ease,color .18s ease}
+.chev svg{width:.78em;height:.52em;overflow:visible}
+.chev svg path{fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.mghead.open .chev,.sphead.open .chev{transform:rotate(180deg);color:var(--bone);border-color:var(--mute)}
+.modenote{display:none;font-size:0.9rem;color:var(--mute);background:var(--ink3);
+  border-radius:8px;padding:11px 13px;margin:2px 0 8px}
+.modenote.open{display:block}
+.empty{color:var(--mute);font-size:0.92rem;padding:16px 0;text-align:center}
+
+/* ---------- species ---------- */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:0.88rem;font-weight:600;color:var(--mute);background:var(--ink2)}
+.chip.on{color:#0d1017;background:var(--yel);border-color:var(--yel);font-weight:700}
+.sp{background:var(--ink2);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:11px;overflow:hidden}
+.sp>button{width:100%;text-align:left;padding:14px;display:flex;align-items:center;gap:11px}
+.sp .swatch{flex:none;width:9px;height:38px;border-radius:3px}
+.sp .ttl{flex:1;min-width:0}
+.sp .ttl b{display:block;font-size:1.02rem;font-weight:700}
+.sp .ttl i{display:block;font-style:italic;font-size:0.88rem;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spbody{display:none;padding:14px 14px 16px;border-top:1px solid var(--line)}
+.sp.open .spbody{display:block}
+.peaks{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.peak{font-size:0.88rem;font-weight:500;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--ink3)}
+.note{font-size:0.96rem;line-height:1.72;margin:10px 0 0}
+.note b{color:var(--bone);font-weight:700}
+
+/* ---------- advisor ---------- */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.opt{border:1px solid var(--line);background:var(--ink2);border-radius:10px;padding:13px;text-align:left;font-size:0.94rem;font-weight:500}
+.opt.on{border-color:var(--yel);background:#2a2410;color:#fff;font-weight:700}
+.opt small{display:block;color:var(--mute);font-size:0.88rem;font-weight:450;margin-top:3px}
+.rx{border-left:4px solid var(--yel);padding-left:14px;margin-top:18px}
+.rx h3{font-size:1.15rem}
+.caution{background:#2a2410;border:1px solid #7a6427;border-radius:10px;padding:13px;font-size:0.92rem;margin-top:12px;color:#f8e9c2}
+.caution b{color:#f9d97a;font-weight:700}
+
+/* ---------- refs ---------- */
+.ref{font-size:0.88rem;padding:11px 0;border-bottom:1px solid var(--line);color:var(--mute)}
+.ref b{color:var(--bone);font-weight:700}
+.ref a{color:var(--blu);text-decoration:none;border-bottom:1px solid rgba(111,163,255,.4)}
+.sharecard{margin-bottom:14px}
+.sharerow{display:flex;gap:14px;align-items:center}
+.qrbox{flex:none;width:128px;height:128px;background:#fff;border-radius:10px;padding:9px}
+.qrbox svg{display:block;width:100%;height:100%}
+.sharetxt{min-width:0}
+@media(max-width:359px){ .sharerow{flex-direction:column;align-items:flex-start} }
+.refkind{display:inline-block;font-size:0.78rem;font-weight:700;padding:1px 8px;border-radius:999px;
+  border:1px solid var(--line);margin:0 6px 4px 0}
+.rk-paper{color:#8bf0c1;border-color:#3a8564}
+.rk-preprint{color:#e2c9ff;border-color:#674592}
+.rk-practice{color:#a3c4ff;border-color:#3f5888}
+.rk-official{color:var(--mute)}
+.rk-note{color:#f9d97a;border-color:#7a6427}
+.rk-nofix{color:var(--mute);background:var(--ink3)}
+footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 44px;line-height:1.75}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media(min-width:620px){ .kv b{flex-basis:9em} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brandrow">
+    <h1 id="bTitle">虫眼光谱</h1>
+    <div class="ctrls">
+      <button id="fsbtn" aria-label="Text size"><span class="fsref">A</span><span class="fscur">A</span></button>
+      <button id="langbtn" aria-label="Language">中文</button>
+    </div>
+  </div>
+  <p id="bSub">昆虫视觉与趋光实验室</p>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+  <section id="v-spectrum" class="on"></section>
+  <section id="v-mech"></section>
+  <section id="v-species"></section>
+  <section id="v-cardid"></section>
+  <section id="v-advisor"></section>
+  <section id="v-durian"></section>
+  <section id="v-veg"></section>
+  <section id="v-refs"></section>
+</main>
+
+<footer id="foot"></footer>
+
+<script>
+"use strict";
+var CACHE_VERSION = 'insecteye-v4.0.0-20260901';
+var LANG = 'zh';
+var FS = 'm';
+var FS_STEPS = ['m','l','xl'];
+var FS_LABEL = {
+  m:{zh:'字号 中',en:'Text M'},
+  l:{zh:'字号 大',en:'Text L'},
+  xl:{zh:'字号 特大',en:'Text XL'}
+};
+function applyFs(){
+  var h = document.documentElement;
+  h.classList.remove('fs-l','fs-xl');
+  if(FS === 'l') h.classList.add('fs-l');
+  if(FS === 'xl') h.classList.add('fs-xl');
+  var b = document.getElementById('fsbtn');
+  if(b){
+    b.className = 'fs-'+FS;
+    b.setAttribute('aria-label', LANG==='zh' ? FS_LABEL[FS].zh : FS_LABEL[FS].en);
+  }
+}
+
+/* =========================================================
+   Evidence tiers. Every substantive claim carries one.
+   measured = published electrophysiology / spectral measurement
+   field    = published field or choice-test trial
+   mech     = inference from an accepted mechanism, not directly measured
+   wrong    = contradicted by the primary literature
+   ========================================================= */
+var EV = {
+  measured:{zh:'实测',en:'Measured',cls:'ev-measured'},
+  field:{zh:'田间试验',en:'Field trial',cls:'ev-field'},
+  mech:{zh:'机理推断',en:'Mechanism',cls:'ev-mech'},
+  schematic:{zh:'示意，非实测',en:'Schematic, not measured',cls:'ev-schem'},
+  wrong:{zh:'需修正',en:'Needs fixing',cls:'ev-wrong'}
+};
+function badge(tier){
+  var e = EV[tier]; if(!e) return '';
+  return '<span class="ev '+e.cls+'">'+(LANG==='zh'?e.zh:e.en)+'</span>';
+}
+
+var T = {
+  nav:{
+    spectrum:{zh:'光谱',en:'Spectrum'},
+    mech:{zh:'机理',en:'How it works'},
+    species:{zh:'虫谱',en:'Insects'},
+    cardid:{zh:'换板',en:'When to replace'},
+    advisor:{zh:'选灯选板',en:'Pick a trap'},
+    durian:{zh:'榴莲园',en:'Durian'},
+    veg:{zh:'菜园',en:'Vegetables'},
+    refs:{zh:'资料来源',en:'Sources'}
+  }
+};
+function t(o){ return LANG==='zh' ? o.zh : o.en; }
+
+/* =========================================================
+   Photoreceptor templates — SCHEMATIC, not measured spectra.
+   Typical insect trichromat: UV ~350, blue ~440, green ~530.
+   ========================================================= */
+var RECEPTORS = [
+  {id:'uv', max:350, sig:34, color:'#b083ff', zh:'紫外受体 UV', en:'UV receptor', nm:'~350 nm'},
+  {id:'blue', max:440, sig:42, color:'#6fa3ff', zh:'蓝受体 Blue', en:'Blue receptor', nm:'~440 nm'},
+  {id:'green', max:530, sig:58, color:'#5ad79c', zh:'绿受体 Green', en:'Green receptor', nm:'~530 nm'}
+];
+function excite(nm, r){
+  var d = (nm - r.max) / r.sig;
+  var v = Math.exp(-0.5*d*d);
+  if(nm > r.max) v += 0.10*Math.exp(-0.5*Math.pow((nm-r.max)/(r.sig*2.4),2));
+  return Math.min(1, v);
+}
+/* Continuous wavelength -> sRGB across the visible range (Bruton's
+   approximation, gamma 0.8), with an intensity floor so the band edges stay
+   legible on a dark background. Below 380 nm there is no true colour — UV is
+   invisible — so it is drawn as a deepening violet by convention. */
+function wlRGB(nm){
+  var r=0,g=0,b=0,f=1;
+  if(nm < 380){
+    /* UV is invisible: ramp a violet that meets the 380 nm value exactly,
+       so the bar has no seam where physical colour begins. */
+    var k = Math.max(0, Math.min(1, (nm-300)/80));
+    return [Math.round(55+104*k), Math.round(18-18*k), Math.round(95+64*k)];
+  }
+  if(nm<440){ r=-(nm-440)/60; g=0; b=1; }
+  else if(nm<490){ r=0; g=(nm-440)/50; b=1; }
+  else if(nm<510){ r=0; g=1; b=-(nm-510)/20; }
+  else if(nm<580){ r=(nm-510)/70; g=1; b=0; }
+  else if(nm<645){ r=1; g=-(nm-645)/65; b=0; }
+  else { r=1; g=0; b=0; }
+  if(nm<420) f = 0.55 + 0.45*(nm-380)/40;
+  else if(nm>700) f = 0.30 + 0.70*(780-nm)/80;
+  if(f<0.30) f = 0.30;
+  function ch(v){ return Math.round(255*Math.pow(Math.max(0,v)*f, 0.8)); }
+  return [ch(r),ch(g),ch(b)];
+}
+function nmToCss(nm){
+  var c = wlRGB(nm);
+  return 'rgb('+c[0]+','+c[1]+','+c[2]+')';
+}
+/* Same hue, lifted for use as text on the dark background. */
+function nmToText(nm){
+  var c = wlRGB(nm), m = Math.max(c[0],c[1],c[2]);
+  var k = m < 170 ? 170/Math.max(m,1) : 1;
+  return 'rgb('+Math.min(255,Math.round(c[0]*k))+','+Math.min(255,Math.round(c[1]*k))+','+Math.min(255,Math.round(c[2]*k))+')';
+}
+/* A gradient sampled across a band, so the middle of the band is shown too. */
+function bandGradient(lo,hi,deg){
+  var stops=[], steps=8;
+  for(var i=0;i<=steps;i++){
+    var nm = lo + (hi-lo)*i/steps;
+    stops.push(nmToCss(nm)+' '+Math.round(i/steps*100)+'%');
+  }
+  return 'linear-gradient('+(deg||180)+'deg,'+stops.join(',')+')';
+}
+
+var BANDS = [
+  {lo:100,hi:280,zh:'UV-C',en:'UV-C',
+   noteZh:'被大气吸收，地表几乎没有',noteEn:'absorbed by the atmosphere'},
+  {lo:280,hi:315,zh:'UV-B',en:'UV-B',noteZh:'',noteEn:''},
+  {lo:315,hi:400,zh:'UV-A',en:'UV-A',
+   noteZh:'黑光灯与诱虫灯的主力波段',noteEn:'the black-light trap band'},
+  {lo:400,hi:420,zh:'紫光',en:'Violet',noteZh:'',noteEn:''},
+  {lo:420,hi:480,zh:'蓝光',en:'Blue',
+   noteZh:'蓝板波段',noteEn:'the blue-card band'},
+  {lo:480,hi:500,zh:'青蓝',en:'Cyan',noteZh:'',noteEn:''},
+  {lo:500,hi:560,zh:'绿光',en:'Green',
+   noteZh:'多数植食昆虫的绿受体所在',noteEn:'where most herbivore green receptors sit'},
+  {lo:560,hi:600,zh:'黄光',en:'Yellow',
+   noteZh:'黄板波段。这是人眼的黄，不是虫眼的峰',noteEn:'the yellow-card band — our yellow, not their peak'},
+  {lo:600,hi:620,zh:'橙光',en:'Orange',noteZh:'',noteEn:''},
+  {lo:620,hi:700,zh:'红光',en:'Red',
+   noteZh:'多数昆虫近乎看不见',noteEn:'near-invisible to most insects'}
+];
+/* The swatch on each insect card is derived, never chosen: it renders the band
+   carrying that group's strongest documented response, as a gradient from the
+   low edge of the band to the high edge. A broad band therefore looks broad. */
+/* One table, used everywhere a band's route is named. Kept parallel between
+   languages: same structure, same level of concreteness, no recommendation. */
+var MODES = {
+  sticky:{zh:'黏板（反射）', en:'card (reflective)'},
+  lamp:  {zh:'诱虫灯（光源）', en:'lamp (light source)'},
+  flight:{zh:'起飞反应（非诱捕）', en:'take-off (not a trap)'},
+  both:  {zh:'黏板或灯', en:'card or lamp'}
+};
+function modeLabel(m){ return t(MODES[m] || MODES.both); }
+var MODE_NOTE = {
+  sticky:{zh:'白天。环境光照亮一个色面，昆虫把它读成降落目标。夜里没有环境光，也就没有信号。',
+          en:'Daytime. Ambient light on a coloured surface, read as a landing target. At night there is no ambient light and so no signal.'},
+  lamp:  {zh:'夜间。光源本身比背景亮，打乱夜行昆虫的背光反射。作用距离短——困住飞近的虫，不是把远处的虫拉过来。',
+          en:'Night. The source outshines the background and corrupts the dorsal light response. Short-range: it traps what flies close rather than drawing insects in.'},
+  flight:{zh:'有实测反应，但方向相反。这个波段触发的是起飞和维持迁飞，不是降落——紫外是「开阔天空」的信号，意思是往上、离开叶面。所以加这个波长不会把它诱过来，等于在说「继续飞」。详见机理页。',
+          en:'A measured response, but pointing the other way. This band triggers take-off and sustained migratory flight, not landing — UV is the open-sky signal, meaning up and away from foliage. Adding this wavelength does not lure them; it says keep flying. See How it works.'},
+  both:  {zh:'这个波段在黏板和诱虫灯两条路径上都有记录。',
+          en:'Documented on both routes, card and lamp.'}
+};
+
+function chevron(){
+  return '<i class="chev" aria-hidden="true"><svg viewBox="0 0 12 8">'
+       + '<path d="M1.5 2 L6 6.2 L10.5 2"/></svg></i>';
+}
+
+function bestBand(sp){
+  var b = null;
+  for(var i=0;i<sp.resp.length;i++){
+    if(!b || sp.resp[i].level > b.level) b = sp.resp[i];
+  }
+  return b;
+}
+function swatchStyle(sp){
+  var b = bestBand(sp);
+  if(!b) return 'background:#4d566e';
+  return 'background:'+bandGradient(b.lo,b.hi,180);
+}
+function bandText(sp){
+  var b = bestBand(sp);
+  if(!b) return LANG==='zh' ? '无可引用的颜色反应数据' : 'no citable colour-response data';
+  return b.lo+'–'+b.hi+' nm · '+modeLabel(b.mode);
+}
+
+function bandOf(nm){
+  for(var i=0;i<BANDS.length;i++) if(nm>=BANDS[i].lo && nm<BANDS[i].hi) return BANDS[i];
+  return BANDS[BANDS.length-1];
+}
+
+/* =========================================================
+   SPECIES DATA
+   resp[] : {lo,hi,level 0-3, mode 'sticky'|'lamp'|'both', tier}
+   level 3 = strongest documented response in that band
+   ========================================================= */
+var SPECIES = [
+{
+ id:'aphid', zh:'蚜虫', en:'Aphids', sci:'Aphididae', guild:'sap', clock:'day',
+ peaks:[{zh:'紫外 ~330–340 nm',en:'UV ~330–340 nm'},{zh:'蓝绿 ~490 nm',en:'Blue-green ~490 nm'},{zh:'绿 ~530 nm',en:'Green ~530 nm'}],
+ peakTier:'measured',
+ resp:[{lo:320,hi:360,level:2,mode:'flight',tier:'measured'},
+       {lo:480,hi:545,level:2,mode:'sticky',tier:'measured'},
+       {lo:545,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'蚜虫没有黄色受体。黄板之所以最有效，是因为黄色反射面在 500–640 nm 强烈刺激绿受体、同时在 300–500 nm 几乎不刺激蓝／紫外受体——这个反差比任何真实叶片都大，所以黄色是「超常态叶片信号」（supernormal foliage stimulus）。',
+ keyEn:'Aphids have no yellow receptor. Yellow cards win because a yellow surface strongly excites the green receptor (500–640 nm) while barely exciting blue/UV (300–500 nm) — a contrast stronger than any real leaf. Yellow is a supernormal foliage stimulus.',
+ keyTier:'mech',
+ useZh:'黄色黏板，白天。夜间用黄光灯诱蚜虫无效——它们是昼飞的，且黄色是降落信号而不是远距离灯塔。',
+ useEn:'Yellow sticky cards, daytime. Yellow lamps at night do not work — aphids are day-fliers, and yellow is a landing cue, not a long-range beacon.',
+ useTier:'field'
+},
+{
+ id:'whitefly', zh:'白粉虱', en:'Whiteflies', sci:'Trialeurodes vaporariorum / Bemisia tabaci', guild:'sap', clock:'day',
+ peaks:[{zh:'紫外 ~340 nm（背侧小眼更敏感）',en:'UV ~340 nm (dorsal eye more sensitive)'},{zh:'绿黄 ~520 nm',en:'Green-yellow ~520 nm'}],
+ peakTier:'measured',
+ resp:[{lo:320,hi:360,level:2,mode:'flight',tier:'measured'},
+       {lo:500,hi:560,level:3,mode:'both',tier:'field'},
+       {lo:560,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'LED 选择试验中，绿光 LED 的吸引力甚至超过黄色黏板；但同时打开蓝光 LED 会把绿光的吸引力压下去——说明这是颜色拮抗，不是单纯「越亮越好」。白粉虱也是两套相反反应最干净的例子：400 nm 触发起飞和持续飞行，550 nm 触发降落，两条通路互不干涉——所以紫外那一栏标的是「起飞反应」，不是「灯」。',
+ keyEn:'In LED choice tests green LEDs out-pulled yellow sticky cards, but adding blue LEDs suppressed that attraction — evidence of colour opponency, not simple brightness. Whitefly is also the cleanest case of the two opposing responses: 400 nm elicits take-off and sustained flight while 550 nm elicits settling, and the two pathways do not interact — which is why its UV band is marked take-off rather than lamp.',
+ keyTier:'measured',
+ useZh:'黄板。一条很实用的改良：把黄板做成不透光（背面加深色底），捕获量提高 1.5–7 倍；再印上黑色图案还能再增加。透光的黄板会漏进短波，削弱正负波段的反差。',
+ useEn:'Yellow cards. One practical upgrade: making the card opaque with a dark backing raised catch 1.5–7×, and printed black patterns raised it further. A translucent card leaks short-wave light and weakens the long-wave/short-wave contrast.',
+ useTier:'field'
+},
+{
+ id:'thrips', zh:'蓟马', en:'Thrips', sci:'Frankliniella spp. / Scirtothrips spp.', guild:'sap', clock:'day',
+ peaks:[{zh:'蓝 ~440–460 nm（西花蓟马最强）',en:'Blue ~440–460 nm (strongest in F. occidentalis)'},{zh:'绿 ~520–540 nm（独立的第二机制）',en:'Green ~520–540 nm (a separate mechanism)'}],
+ peakTier:'measured',
+ resp:[{lo:340,hi:400,level:1,mode:'lamp',tier:'field'},
+       {lo:420,hi:480,level:3,mode:'both',tier:'field'},
+       {lo:500,hi:560,level:2,mode:'both',tier:'field'},
+       {lo:560,hi:600,level:2,mode:'sticky',tier:'field'}],
+ keyZh:'颜色偏好在属一级就分家了。西花蓟马 Frankliniella occidentalis 最偏蓝（LED 选择试验：蓝最强、绿次之、紫外中等）；但 Scirtothrips 属——包括榴莲花期的 S. dorsalis——在芒果园六色对照里偏黄。蓝和绿是两套独立机制，混在一起反而比单独任何一个都差。',
+ keyEn:'Colour preference splits at genus level. Frankliniella occidentalis prefers blue (LED choice tests: blue strongest, green second, UV moderate). But Scirtothrips — including S. dorsalis, the durian bloom thrips — went to yellow in a six-colour mango orchard trial. Blue and green are separate mechanisms, and mixing them is worse than either alone.',
+ keyTier:'field',
+ useZh:'榴莲花期用黄板——花期的 Scirtothrips dorsalis 属于偏黄的那一属，槟城芒果园的研究也已验证黄板计数与花穗上的实际虫量相关。挂两周后若捕获量仍低，整批换蓝板。蔬菜或花卉上的西花蓟马直接用蓝板。黄板会多黏到天敌（瓢虫、小花蝽），所以按监测量挂，不要铺满。',
+ useEn:'On durian use yellow — the bloom pest S. dorsalis is in the yellow-preferring genus, and Penang mango orchard work validated yellow-trap counts against actual thrips numbers on the panicles. If catch is still low after two weeks, switch the batch to blue. For Frankliniella on vegetables or flowers, go straight to blue. Yellow takes more natural enemies (ladybirds, Orius), so hang at monitoring density rather than saturating.',
+ useTier:'field'
+},
+{
+ id:'psyllid', zh:'木虱', en:'Psyllids', sci:'Diaphorina citri / Allocarsidara malayensis', guild:'sap', clock:'day',
+ peaks:[{zh:'紫外 + 绿黄（组合刺激最强）',en:'UV + green-yellow (combination strongest)'}],
+ peakTier:'field',
+ resp:[{lo:340,hi:400,level:2,mode:'both',tier:'field'},
+       {lo:500,hi:560,level:2,mode:'sticky',tier:'field'},
+       {lo:560,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'亚洲柑橘木虱试验里，黄色＋紫外 比 纯黄色 更有吸引力，即使总亮度更低也一样——所以完全滤掉紫外的黄板可能是在浪费一半信号。榴莲木虱 Allocarsidara malayensis 只危害叶片、不危害果实。',
+ keyEn:'In Asian citrus psyllid tests, yellow plus UV beat yellow alone even at lower total intensity — so a UV-blocking yellow card may be throwing away half the signal. The durian psyllid Allocarsidara malayensis attacks foliage, not fruit.',
+ keyTier:'field',
+ useZh:'黄板，挂在抽新梢的位置。注意：李属木虱的研究显示颜色偏好会随寄主物候变化（花期偏白，花后转黄）——所以固定一种颜色全年用未必最优。',
+ useEn:'Yellow cards, positioned at flush. Caution: plum psyllid work shows colour preference shifts with host phenology (white during bloom, yellow after) — one colour all year is not automatically optimal.',
+ useTier:'field'
+},
+{
+ id:'hopper', zh:'叶蝉与飞虱', en:'Leafhoppers & planthoppers', sci:'Cicadellidae / Delphacidae', guild:'sap', clock:'day',
+ peaks:[{zh:'绿黄区（与其他刺吸类同型）',en:'Green-yellow region (same pattern as other sap-feeders)'}],
+ peakTier:'mech',
+ resp:[{lo:500,hi:560,level:2,mode:'sticky',tier:'field'},
+       {lo:560,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'茶园里的对照研究提出一个直接的问题：黄板和诱虫灯捕到的天敌，可能比捕到的假眼小绿叶蝉还多。挂板前先想清楚你园里的天敌基数。',
+ keyEn:'A tea-plantation study raises the blunt question directly: yellow cards and light traps may remove more predators than leafhoppers. Weigh your existing natural-enemy population before hanging cards.',
+ keyTier:'field',
+ useZh:'黄板，白天。夜间灯光对它们基本无效。',
+ useEn:'Yellow cards, daytime. Night lighting does essentially nothing to them.',
+ useTier:'field'
+},
+{
+ id:'noctuid', zh:'夜蛾类', en:'Noctuid moths', sci:'Noctuidae, Erebidae, Crambidae', guild:'moth', clock:'night',
+ peaks:[{zh:'紫外 ~350–380 nm',en:'UV ~350–380 nm'},{zh:'蓝 ~420–450 nm',en:'Blue ~420–450 nm'}],
+ peakTier:'measured',
+ resp:[{lo:315,hi:400,level:3,mode:'lamp',tier:'field'},
+       {lo:400,hi:480,level:2,mode:'lamp',tier:'field'},
+       {lo:500,hi:560,level:1,mode:'lamp',tier:'field'}],
+ keyZh:'受控选择试验中，84% 的蛾停在紫外灯上；紫外 vs 蓝的对照里 63% 选蓝（即波长越短越强）。灯型对照研究里捕获峰值出现在加权平均波长约 382 nm 的灯。但同一批研究也发现体型偏差：短波灯会偏向捕到大体型、大眼的蛾，所以灯下的虫谱不等于园里的虫谱。',
+ keyEn:'In controlled choice tests 84% of moths settled at the UV lamp; in a UV-vs-blue comparison 63% chose blue — shorter is stronger. Peak catch across lamp types came at a weighted mean wavelength near 382 nm. The same work found a size bias: short-wavelength lamps over-sample large-bodied, large-eyed moths, so what is under the lamp is not what is in the orchard.',
+ keyTier:'field',
+ useZh:'UV-A LED，365–400 nm。傍晚开启即可，不必整夜。',
+ useEn:'UV-A LED, 365–400 nm. Switch on after dusk; all-night running is not required.',
+ useTier:'field'
+},
+{
+ id:'beetle', zh:'甲虫类', en:'Beetles', sci:'Coleoptera', guild:'beetle', clock:'night',
+ peaks:[{zh:'紫外 ~360–390 nm（多数夜行种）',en:'UV ~360–390 nm (most night-flying species)'}],
+ peakTier:'field',
+ resp:[{lo:315,hi:400,level:3,mode:'lamp',tier:'field'},
+       {lo:400,hi:460,level:2,mode:'lamp',tier:'field'}],
+ keyZh:'默认 UV-A 365–400 nm。夜行甲虫的趋光集中在这一区，市售诱虫灯也是这个波段，买得到、装得上。不同科属的最佳点略有差别，但不足以让你改买另一种灯。夜里咬榴莲幼叶的金龟子——如 Adoretus compressus、Apogonia 属——就在这一类里，灯对它们有效。',
+ keyEn:'Default to UV-A at 365–400 nm. Night-flying beetle phototaxis concentrates there, and it is the band commercial trap lamps are sold in, so it is available and installable. Family optima differ slightly, but not enough to change what you buy. The chafers that notch young durian foliage at night — Adoretus compressus and Apogonia among them — are in this group, and lamps work on them.',
+ keyTier:'mech',
+ useZh:'UV-A 灯，傍晚开。要区分白天那只：绿象鼻虫 Hypomeces squamosus 同样咬幼叶，却是<b>日行性</b>，对夜间灯光基本无反应——同样的叶伤，两种虫，只有夜行的那种买灯有用。捕获平平再考虑往蓝紫端调一档。',
+ useEn:'UV-A lamps, on at dusk. Separate the daytime culprit: the green weevil Hypomeces squamosus notches young leaves too, yet is <b>day-active</b> and barely responds to lamps — same damage, two insects, and only the night one justifies a lamp. Step toward blue-violet only if catch stays flat.',
+ useTier:'field'
+},
+{
+ id:'fruitfly', zh:'果实蝇', en:'Fruit flies (Bactrocera)', sci:'Bactrocera spp.', guild:'fly', clock:'day',
+ peaks:[{zh:'气味为主导线索；未见可引用的颜色反应实测数据',en:'Odour is the dominant cue; no citable measured colour response found'}],
+ peakTier:'mech',
+ resp:[],
+ keyZh:'果实蝇是本软件里唯一一个「颜色不是主角」的类群。注意分种：<b>瓜类上的瓜实蝇不认甲基丁香油</b>，它的雄虫诱剂是诱蝇酮（cue-lure），买诱剂先看成分。甲基丁香油只引诱雄虫——它是监测和减少交配机会的工具，不是防治闭环。要压产卵，还是要靠套袋、清园落果和蛋白饵剂。',
+ keyEn:'Fruit flies are the one group here where colour is not the main lever. Mind the species split: <b>the melon fly on cucurbits does not respond to methyl eugenol</b> — its male lure is cue-lure, so read the label before buying. Methyl eugenol lures males only — a monitoring and mating-suppression tool, not a control loop on its own. Bagging, removing fallen fruit and protein bait do the work against egg-laying.',
+ keyTier:'mech',
+ useZh:'甲基丁香油诱捕器针对雄虫，蛋白饵剂针对雌虫，配合套袋和清园落果。这一栏不给颜色建议——我找不到可引用的实测数据。',
+ useEn:'Methyl eugenol for males, protein bait for females, alongside bagging and clearing windfalls. No colour recommendation here — I found no citable measured data.',
+ useTier:'field'
+},
+{
+ id:'leafminer', zh:'潜叶蝇', en:'Leafminer flies', sci:'Liriomyza spp.', guild:'fly', clock:'day',
+ peaks:[{zh:'黄绿区（趋黄双翅目通型）',en:'Green-yellow region (typical of yellow-responsive flies)'}],
+ peakTier:'mech',
+ resp:[{lo:500,hi:560,level:2,mode:'sticky',tier:'field'},
+       {lo:560,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'菜园黏板上最常见的虫之一，多家推广机构的黏板认虫指南都拿它当例子。成虫趋黄强；幼虫在叶内潜出弯曲白道，那个阶段任何视觉陷阱都够不到。',
+ keyEn:'One of the commonest insects on a vegetable-farm card — the extension sticky-card guides use it as a standard example. Adults respond strongly to yellow; the larvae are inside the winding white mines, where no visual trap can reach.',
+ keyTier:'field',
+ useZh:'黄板与作物同高，监测密度即可。<b>不要诱杀</b>：潜叶蝇的寄生蜂通常控制得很好，大发生多是喷药清掉天敌后的反弹，把寄生蜂黏走只会更糟。',
+ useEn:'Yellow cards at crop height, monitoring density only. <b>Do not mass-trap</b>: parasitoids usually control leafminers well, outbreaks are mostly rebounds after sprays remove those enemies, and gluing the parasitoids makes it worse.',
+ useTier:'field'
+},
+{
+ id:'gnat', zh:'真菌蚊（尖眼蕈蚊）', en:'Fungus gnats', sci:'Sciaridae', guild:'fly', clock:'day',
+ peaks:[{zh:'黄色区反应明确（黏板 560–600 nm）',en:'Clear response in the yellow band (560–600 nm cards)'}],
+ peakTier:'field',
+ resp:[{lo:500,hi:600,level:3,mode:'sticky',tier:'field'}],
+ keyZh:'育苗区最常见。真正决定捕获量的是<b>放法</b>不是颜色：把黄板<b>平放</b>在基质表面或略高处，而不是竖挂在冠层——成虫从基质羽化，飞得低，大部分时间贴着表面活动。颜色一项目前有互相矛盾的推广结论：康奈尔的对照说红板捕到的尖眼蕈蚊比黄板多，另一份归于俄亥俄州立的结论则说黄板胜过蓝、白、绿、红。两边我都只见到推广机构的转述，没见到原始试验，所以这一条按未定处理——黄板买得到、对其他害虫也通用，默认就用黄板。',
+ keyEn:'Mainly a nursery problem, and <b>placement</b> decides the catch more than colour does: lay yellow cards <b>flat</b> on or just above the media rather than hanging them at canopy height, because adults emerge from the media, fly low and stay near the surface. On colour the extension guidance conflicts — Cornell work reports red cards out-catching yellow for fungus gnats, while a result attributed to Ohio State has yellow beating blue, white, green and red. I have only seen both relayed second-hand, never the primary trials, so treat it as unsettled. Yellow is what is sold and works on the other pests too, so yellow is the default.',
+ keyTier:'field',
+ useZh:'黄板平铺育苗盘面；根本解决还是控湿和基质管理。',
+ useEn:'Yellow cards flat on the tray surface; the real fix is moisture and media management.',
+ useTier:'mech'
+},
+{
+ id:'mosquito', zh:'蚊', en:'Mosquitoes', sci:'Culicidae', guild:'fly', clock:'night',
+ peaks:[{zh:'紫外–蓝 ~350–450 nm',en:'UV–blue ~350–450 nm'}],
+ peakTier:'field',
+ resp:[{lo:340,hi:460,level:2,mode:'lamp',tier:'field'}],
+ keyZh:'单靠灯光抓蚊效率很低。二氧化碳和体味才是主线索，灯只是配角。',
+ keyEn:'Light alone is a weak mosquito trap. CO2 and body odour are the primary cues; light is a supporting stimulus.',
+ keyTier:'field',
+ useZh:'UV-LED ＋ 二氧化碳或诱引剂组合。',
+ useEn:'UV-LED plus CO2 or an attractant.',
+ useTier:'field'
+},
+{
+ id:'bee', zh:'蜜蜂与传粉者', en:'Bees & pollinators', sci:'Apidae', guild:'benef', clock:'day',
+ peaks:[{zh:'紫外 ~340 nm',en:'UV ~340 nm'},{zh:'蓝 ~430 nm',en:'Blue ~430 nm'},{zh:'绿 ~535 nm',en:'Green ~535 nm'}],
+ peakTier:'measured',
+ resp:[{lo:330,hi:560,level:2,mode:'both',tier:'measured'}],
+ keyZh:'蜜蜂是标准的紫外–蓝–绿三色型，量得很清楚（如熊蜂 347 / 424 / 539 nm）。它们白天活动，所以夜间 UV 灯基本碰不到；真正会误伤传粉者的是白天挂的黄板。',
+ keyEn:'Bees are the textbook UV-blue-green trichromat, well measured (bumblebee 347 / 424 / 539 nm). They fly by day, so a night UV lamp mostly misses them — the daytime yellow card is what actually catches pollinators.',
+ keyTier:'measured',
+ useZh:'榴莲花期减少黄板密度，或改挂在花房以外的高度。榴莲主要靠蝙蝠和夜间昆虫传粉，花期夜间开灯要格外谨慎。',
+ useEn:'Cut yellow-card density during durian bloom, or hang them away from flower height. Durian is largely bat- and night-insect-pollinated, so night lighting during bloom deserves extra caution.',
+ useTier:'mech'
+},
+{
+ id:'fruitborer', zh:'榴莲果螟', en:'Durian fruit borer', sci:'Conogethes punctiferalis (Crambidae)', guild:'moth', clock:'night',
+ peaks:[{zh:'无本种实测；按夜行蛾类通用紫外区',en:'No species measurement; UV region as for night-flying moths generally'}],
+ peakTier:'mech',
+ resp:[{lo:340,hi:400,level:2,mode:'lamp',tier:'mech'}],
+ keyZh:'公认<b>最重要的榴莲果实害虫</b>：幼虫蛀入果内取食。属草螟科夜行蛾，本软件此前只以「夜蛾类（含草螟科）」笼统覆盖，没有点名。趋光按夜行蛾类通用规律处理；未查到本种的波长实测，所以不给专属数字，沿用 UV-A 缺省。',
+ keyEn:'Widely regarded as <b>the most serious fruit pest of durian</b>: larvae bore into and feed inside the fruit. A night-flying crambid — previously covered here only under the generic moth umbrella, never by name. Phototaxis is treated by the general night-moth rule; no species-level wavelength measurement was found, so no bespoke figure is given and the UV-A default applies.',
+ keyTier:'field',
+ useZh:'UV-A 灯（365–400 nm），坐果期傍晚至十点，园缘与果位层。注意甲基丁香油对它无效——那是果实蝇的诱剂，不覆盖果螟。产卵在果面，蛀入后灯就管不到了，所以窗口在成虫期。',
+ useEn:'UV-A lamps, 365–400 nm, dusk to ten from fruit set, at the block margin and fruit zone. Note that methyl eugenol does nothing here — it is a fruit-fly lure and does not cover this borer. Eggs go on the fruit surface, and once larvae are inside no lamp reaches them: the window is the adult flight.',
+ useTier:'mech'
+},
+{
+ id:'seedborer', zh:'榴莲种籽蛀蛾', en:'Durian seed borer', sci:'Mudaria luteileprosa (Noctuidae)', guild:'moth', clock:'night',
+ peaks:[{zh:'无本种实测；按夜蛾类通用紫外区',en:'No species measurement; UV region as for noctuids generally'}],
+ peakTier:'mech',
+ resp:[{lo:340,hi:400,level:2,mode:'lamp',tier:'mech'}],
+ keyZh:'泰国出口榴莲的<b>头号采后害虫</b>——失控时约一半果实不能上市。幼虫一路蛀到种子，果面几乎无外观损伤，只留一个 5–8 mm、带白橙色虫粪的孔，往往到开果才发现。推广指引明确建议<b>架设诱虫灯压低成蛾数量</b>——这是榴莲「用灯」少有的直接书面依据。',
+ keyEn:'The <b>leading postharvest pest of Thai export durian</b> — around half the crop unmarketable where uncontrolled. Larvae bore through to the seed leaving almost no external damage beyond a 5–8 mm hole with white-orange frass, so it is usually discovered at opening. Extension guidance explicitly recommends <b>setting up a light trap to reduce the adult population</b> — the most direct written basis for lamps on durian that exists.',
+ keyTier:'field',
+ useZh:'UV-A 灯坐果期傍晚开，园缘与果位层。更硬的证据是<b>套袋</b>：庄他武里府园区试验，坐果后 6 周套袋，蛀果率 0%，对照 5.44%。幼虫离果后入土化蛹，树盘的湿润土层是它的化蛹场——树下环境也算防线之一。',
+ useEn:'UV-A lamps from fruit set, dusk onward, margin and fruit zone. The harder evidence is <b>bagging</b>: in a Chanthaburi orchard trial, bagging at 6 weeks after fruit set gave 0% infestation against 5.44% in controls. Larvae leave the fruit to pupate in damp soil, so the ground under the tree is part of the defence as well.',
+ useTier:'field'
+},
+{
+ id:'mealybug', zh:'粉蚧', en:'Mealybugs', sci:'Planococcus lilacinus / P. minor / Pseudococcus spp.', guild:'sap', clock:'day',
+ peaks:[{zh:'不适用——雌成虫无翅',en:'Not applicable — adult females are wingless'}],
+ peakTier:'measured',
+ resp:[],
+ keyZh:'放进来是为了把话说清楚：<b>对粉蚧，黏板和诱虫灯都帮不了你。</b>雌成虫无翅、终生不飞，贴在果面、果柄和枝条上吸食；会飞的只有细小的雄成虫，拦到它也改变不了产卵。它是榴莲的主要害虫之一，但不是视觉诱捕能解决的那一类。',
+ keyEn:'This entry exists to say one thing plainly: <b>for mealybugs, neither cards nor lamps will help you.</b> Adult females are wingless and never fly — they sit on the fruit surface, stalk and branches and feed. Only the tiny males fly, and intercepting them changes nothing about egg-laying. A major durian pest, but not one visual trapping can touch.',
+ keyTier:'measured',
+ useZh:'有效的杠杆在别处：<b>控蚂蚁</b>（蚂蚁搬运并保护粉蚧，蚁路断了粉蚧扩散就慢）、对爬行期若虫处理、修剪让果间通风。省下买板的钱。',
+ useEn:'The working levers are elsewhere: <b>control the ants</b> (they carry and guard mealybugs, so cutting the ant trails slows the spread), treat at the crawler stage, and prune for airflow between fruit. Save the card money.',
+ useTier:'field'
+},
+{
+ id:'enemy', zh:'天敌昆虫', en:'Natural enemies', sci:'Coccinellidae, Orius, parasitoid wasps', guild:'benef', clock:'day',
+ peaks:[{zh:'与植食昆虫大体同型（紫外／蓝／绿）',en:'Broadly the same UV/blue/green layout as the herbivores'}],
+ peakTier:'mech',
+ resp:[{lo:340,hi:600,level:2,mode:'both',tier:'field'}],
+ keyZh:'这是整个软件里最重要的一页。豇豆田的对照数据：黄板黏到的益虫是蓝板的 1.7 倍，其中瓢虫占 63%、小花蝽占 29%。芒果园数据也是黄板对天敌冲击最大。诱虫灯同样有非靶标问题——把灯从最佳波段调高或调低，蛾没多捕到，非靶标却明显增加。',
+ keyEn:'This is the most important page here. From cowpea trials: yellow cards caught 1.7× as many beneficials as blue, of which 63% were ladybirds and 29% Orius. Mango orchard data likewise shows yellow hitting natural enemies hardest. Lamps have the same problem — tuning away from the optimum caught no extra moths but distinctly more non-targets.',
+ keyTier:'field',
+ useZh:'黄板按监测密度挂（少量、固定位置、定期计数），不要按「诱杀」密度铺满全园。诱杀密度换来的额外产量，很可能被天敌损失抵消。',
+ useEn:'Hang yellow cards at monitoring density — few, fixed positions, counted regularly — not at mass-trapping density across the block. The extra catch from saturation density is easily cancelled by the predators it removes.',
+ useTier:'mech'
+}
+];
+
+var GUILDS = [
+  {id:'all', zh:'全部', en:'All'},
+  {id:'sap', zh:'刺吸类', en:'Sap-feeders'},
+  {id:'moth', zh:'蛾类', en:'Moths'},
+  {id:'beetle', zh:'甲虫', en:'Beetles'},
+  {id:'fly', zh:'双翅目', en:'Flies'},
+  {id:'benef', zh:'益虫／天敌', en:'Beneficials'}
+];
+
+/* =========================================================
+   VIEW: SPECTRUM
+   ========================================================= */
+var curNm = 570;
+
+function renderSpectrum(){
+  var el = document.getElementById('v-spectrum');
+  el.innerHTML =
+   '<p class="lede">'+(LANG==='zh'
+     ? '拖动色带、曲线或滑块，看每个波长大致激发哪些受体、哪些类群有记录到的反应。'
+     : 'Drag the colour bar, the curves or the slider to see roughly which receptors each wavelength excites and which groups have a documented response.')+'</p>'
+   +'<div class="scrub">'
+     +'<div class="nmbig" id="nmVal">570<small>nm</small></div>'
+     +'<div class="bandname"><b id="bandName"></b><span id="bandNote"></span></div>'
+     +'<div class="bar" style="background:'+bandGradient(300,700,90)+'"><div class="tick" id="tick"></div></div>'
+     +'<input type="range" id="nmSlider" min="300" max="700" step="5" value="'+curNm+'" aria-label="wavelength">'
+     +'<div class="axis"><span>300</span><span>400</span><span>500</span><span>600</span><span>700 nm</span></div>'
+     +'<div class="rechead"><span id="recTitle"></span><span id="recBadge"></span></div>'
+     +'<svg id="recCurves" viewBox="300 0 400 64" preserveAspectRatio="none" aria-hidden="true"></svg>'
+     +'<div class="rec" id="recWrap"></div>'
+   +'</div>'
+   +'<div class="card"><h3>'+(LANG==='zh'?'这个波长会碰到谁':'What responds here')+'</h3>'
+     +'<p class="sub" id="modeHint"></p>'
+     +'<div class="hitlist" id="hitList"></div></div>'
+   +'<div class="card"><h3>'+(LANG==='zh'?'读这张表之前':'Before reading this list')+'</h3>'
+     +'<p class="note">'+(LANG==='zh'
+       ? '一个波长可以通过两条完全不同的路径影响昆虫：白天照亮一个<b>色面</b>（黏板），或夜间作为一个比背景更亮的<b>光源</b>（诱虫灯）。同一个波长在两条路径上的效果可以完全相反，所以上面每一条都标注了是哪一种。'
+       : 'A wavelength can reach an insect by two quite different routes: illuminating a <b>coloured surface</b> by day (a sticky card), or acting as a <b>light source</b> brighter than the background at night (a trap lamp). The same wavelength can behave oppositely on the two routes, which is why every line above is labelled with one.')+'</p>'
+     +'<p class="note sub">'+(LANG==='zh'
+       ? '受体那一栏用的是典型三色型模板（350／440／530 nm）——不是任何一种虫的实测光谱，连蚜虫属内部的绿受体都在 518–530 nm 之间浮动。所以只给强／中／弱，不给百分比：给了数字就等于在假装精确。'
+       : 'The receptor rows use a typical trichromat template at 350/440/530 nm — not a measured spectrum for any species; even within aphids the green peak moves between 518 and 530 nm. That is why they give strong/moderate/weak rather than a percentage: a number would be pretending to a precision that does not exist.')+'</p>'
+     +'<p class="note sub">'+(LANG==='zh'
+       ? '受体激发是生理量，不等于诱捕效果。绿受体在 530 nm 最强，最好的黏板却是 560–600 nm 的黄——原因见「机理」页。'
+       : 'Receptor excitation is a physiological quantity, not a measure of trapping power. The green receptor peaks at 530 nm while the best card is 560–600 nm yellow — the How it works tab explains why.')+'</p>'
+     +'<p class="note sub">'+(LANG==='zh'
+       ? '另有一条要讲明：●／●●／●●● 是<b>我把文献描述压成三档</b>的结果，不是文献报出的数值。每条后面的证据等级说的是这条结论出自哪种研究，不代表「强弱」这个分档本身有出处。'
+       : 'One more thing to be clear about: ●/●●/●●● is <b>my compression of what the papers describe into three bands</b>, not a figure any paper reports. The evidence tier says what kind of study a finding came from; it does not mean the strength rating itself is sourced.')+'</p></div>';
+
+  var sl = document.getElementById('nmSlider');
+  sl.addEventListener('input', function(){ curNm = +sl.value; updateSpectrum(); });
+  attachScrub(document.getElementById('recCurves'));
+  attachScrub(document.querySelector('.bar'));
+  buildCurves();
+  updateSpectrum();
+}
+
+/* Drag anywhere on the curve strip or the colour bar to scrub — the same
+   wavelength state drives the slider, tick, cursor and hit list. The range
+   input stays the keyboard path; these are pointer shortcuts on top of it. */
+function attachScrub(el){
+  if(!el) return;
+  var sl = document.getElementById('nmSlider');
+  function apply(ev){
+    var r = el.getBoundingClientRect();
+    if(!r.width) return;
+    var f = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width));
+    var v = Math.round((300 + f*400)/5)*5;
+    if(v !== curNm){ curNm = v; sl.value = v; updateSpectrum(); }
+  }
+  el.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    try{ el.setPointerCapture(ev.pointerId); }catch(e){}
+    apply(ev);
+  });
+  el.addEventListener('pointermove', function(ev){
+    if(ev.buttons) apply(ev);
+  });
+}
+
+var CURVE_H = 64, CURVE_PAD = 5;
+function curveY(v){ return CURVE_H - CURVE_PAD - v*(CURVE_H - 2*CURVE_PAD); }
+function buildCurves(){
+  var svg = document.getElementById('recCurves');
+  if(!svg) return;
+  var h = '';
+  for(var i=0;i<RECEPTORS.length;i++){
+    var r = RECEPTORS[i], fill = 'M 300 '+curveY(0), line = '';
+    for(var nm=300;nm<=700;nm+=4){
+      var y = curveY(excite(nm,r)).toFixed(1);
+      fill += ' L '+nm+' '+y;
+      line += (line ? ' L ' : 'M ')+nm+' '+y;
+    }
+    fill += ' L 700 '+curveY(0)+' Z';
+    /* dashed stroke on purpose: these are the schematic template curves,
+       and a solid line would read as measured data */
+    h += '<path d="'+fill+'" fill="'+r.color+'" opacity="0.13"/>'
+       + '<path d="'+line+'" fill="none" stroke="'+r.color+'" stroke-width="1.8" stroke-dasharray="3 3.5" opacity="0.9"/>';
+  }
+  h += '<line id="curveCursor" y1="0" y2="'+CURVE_H+'" stroke="#f5f3ed" stroke-width="1.2" opacity="0.85"/>';
+  for(var j=0;j<RECEPTORS.length;j++){
+    h += '<circle id="curveDot'+j+'" r="3.6" fill="'+RECEPTORS[j].color+'" stroke="#0d1017" stroke-width="1.2"/>';
+  }
+  svg.innerHTML = h;
+}
+
+function updateSpectrum(){
+  var nm = curNm;
+  var nv = document.getElementById('nmVal'); if(!nv) return;
+  nv.innerHTML = nm+'<small>nm</small>';
+  nv.style.color = nmToText(nm);
+  var b = bandOf(nm);
+  document.getElementById('bandName').textContent = t(b);
+  document.getElementById('bandNote').textContent = LANG==='zh' ? b.noteZh : b.noteEn;
+  document.getElementById('tick').style.left = ((nm-300)/400*100)+'%';
+
+  var rh = '';
+  for(var i=0;i<RECEPTORS.length;i++){
+    var r = RECEPTORS[i], v = excite(nm,r), pc = Math.round(v*100);
+    /* Deliberately a word, not a number: the curve is a generic trichromat
+       template, so a two-figure percentage would claim a precision it cannot
+       support — real peaks differ between species and even within aphids. */
+    var word = v>=0.75 ? {zh:'强',en:'strong'}
+             : v>=0.40 ? {zh:'中',en:'moderate'}
+             : v>=0.15 ? {zh:'弱',en:'weak'}
+             : {zh:'极弱',en:'negligible'};
+    rh += '<div class="recrow"><span class="nm"><b>'+t(r)+'</b><i>'+r.nm+'</i></span>'
+        + '<span class="recbar"><i style="width:'+pc+'%;background:'+r.color+'"></i></span>'
+        + '<em>'+t(word)+'</em></div>';
+  }
+  document.getElementById('recWrap').innerHTML = rh;
+  document.getElementById('recTitle').textContent = LANG==='zh' ? '受体激发' : 'Receptor excitation';
+  document.getElementById('recBadge').innerHTML = badge('schematic');
+  var cur = document.getElementById('curveCursor');
+  if(cur){
+    cur.setAttribute('x1', nm); cur.setAttribute('x2', nm);
+    for(var ci=0;ci<RECEPTORS.length;ci++){
+      var dot = document.getElementById('curveDot'+ci);
+      dot.setAttribute('cx', nm);
+      dot.setAttribute('cy', curveY(excite(nm, RECEPTORS[ci])).toFixed(1));
+    }
+  }
+
+  var hits = [];
+  for(var s=0;s<SPECIES.length;s++){
+    var sp = SPECIES[s], best = null;
+    for(var j=0;j<sp.resp.length;j++){
+      var band = sp.resp[j];
+      if(nm>=band.lo && nm<band.hi){ if(!best || band.level>best.level) best = band; }
+    }
+    if(best && best.level>0) hits.push({sp:sp,b:best});
+  }
+  hits.sort(function(a,b){ return b.b.level - a.b.level; });
+
+  var mh = '';
+  if(!hits.length){
+    mh = '<div class="empty">'+(LANG==='zh'
+      ? '这个波长没有已记录的农业相关反应。'+(nm>620?'红光区——多数昆虫的受体到这里已经基本没有输出。':(nm<315?'UV-B／UV-C 在地面几乎不存在，也不用于诱虫。':''))
+      : 'No documented agricultural response at this wavelength. '+(nm>620?'Red — most insect receptors have effectively no output here.':(nm<315?'UV-B/UV-C barely reach the ground and are not used for trapping.':'')))+'</div>';
+  } else {
+    /* Group by route. The explanation belongs to the route, not to each insect,
+       so it is written once per group instead of repeating on every row. */
+    var order = [], groups = {}, key;
+    for(var k=0;k<hits.length;k++){
+      var h = hits[k];
+      key = MODE_NOTE[h.b.mode] ? h.b.mode : 'both';
+      if(!groups[key]){ groups[key] = {max:0, items:[]}; order.push(key); }
+      groups[key].items.push(h);
+      if(h.b.level > groups[key].max) groups[key].max = h.b.level;
+    }
+    order.sort(function(x,y){ return groups[y].max - groups[x].max; });
+    for(var gi=0; gi<order.length; gi++){
+      key = order[gi];
+      var g = groups[key];
+      mh += '<div class="mgroup">'
+          + '<button class="mghead" data-mode="'+key+'" aria-expanded="false">'
+            + '<span class="mgname">'+modeLabel(key)+'</span>'
+            + '<span class="mgcount">'+g.items.length+'</span>'
+            + chevron()+'</button>'
+          + '<div class="modenote">'+t(MODE_NOTE[key])+'</div>';
+      for(var j=0;j<g.items.length;j++){
+        var it = g.items[j];
+        var dots = ['','●','●●','●●●'][it.b.level];
+        mh += '<div class="hit"><span class="dots" style="color:'+nmToText(nm)+'">'+dots+'</span>'
+            + '<span class="nmz">'+t(it.sp)+'</span>'+badge(it.b.tier)+'</div>';
+      }
+      mh += '</div>';
+    }
+  }
+  var hl = document.getElementById('hitList');
+  hl.innerHTML = mh;
+  hl.querySelectorAll('.mghead').forEach(function(b){
+    b.addEventListener('click', function(){
+      var note = b.nextElementSibling;
+      if(note && note.classList.contains('modenote')){
+        note.classList.toggle('open');
+        b.classList.toggle('open');
+        b.setAttribute('aria-expanded', note.classList.contains('open') ? 'true' : 'false');
+      }
+    });
+  });
+
+  document.getElementById('modeHint').textContent = LANG==='zh'
+    ? '按作用路径分组——黏板和灯是两套机制，不能互换。● 越多＝该波段记录到的反应越强。点标题看这条路径怎么起作用。'
+    : 'Grouped by route, because card and lamp are different mechanisms and are not interchangeable. More ● = stronger documented response. Tap a heading to see how that route works.';
+}
+
+/* =========================================================
+   VIEW: SPECIES
+   ========================================================= */
+var curGuild = 'all';
+var openSp = {};
+
+function renderSpecies(){
+  var el = document.getElementById('v-species');
+  var f = '';
+  for(var i=0;i<GUILDS.length;i++){
+    var g = GUILDS[i];
+    f += '<button class="chip'+(curGuild===g.id?' on':'')+'" data-g="'+g.id+'">'+t(g)+'</button>';
+  }
+  var list = '';
+  for(var j=0;j<SPECIES.length;j++){
+    var sp = SPECIES[j];
+    if(curGuild!=='all' && sp.guild!==curGuild) continue;
+    var pk = '';
+    for(var p=0;p<sp.peaks.length;p++) pk += '<span class="peak">'+t(sp.peaks[p])+'</span>';
+    var clock = sp.clock==='day' ? (LANG==='zh'?'昼行':'Day-active') : (LANG==='zh'?'夜行':'Night-active');
+    list += '<div class="sp'+(openSp[sp.id]?' open':'')+'" data-id="'+sp.id+'">'
+      + '<button class="sphead'+(openSp[sp.id]?' open':'')+'" data-toggle="'+sp.id+'" aria-expanded="'+(openSp[sp.id]?'true':'false')+'">'
+        + '<span class="swatch" style="'+swatchStyle(sp)+'"></span>'
+        + '<span class="ttl"><b>'+t(sp)+'</b><i>'+sp.sci+'</i></span>'
+        + chevron()+'</button>'
+      + '<div class="spbody">'
+        + '<div class="kv"><b>'+(LANG==='zh'?'活动时段':'Active')+'</b><span>'+clock+'</span></div>'
+        + '<div class="kv"><b>'+(LANG==='zh'?'最强反应':'Strongest')+'</b><span>'+bandText(sp)+'</span></div>'
+        + '<div class="kv"><b>'+(LANG==='zh'?'感光峰值':'Receptor peaks')+'</b><span>'+badge(sp.peakTier)+'</span></div>'
+        + '<div class="peaks">'+pk+'</div>'
+        + '<p class="note">'+(LANG==='zh'?sp.keyZh:sp.keyEn)+' '+badge(sp.keyTier)+'</p>'
+        + '<div class="hr"></div>'
+        + '<p class="note"><b>'+(LANG==='zh'?'实际怎么用：':'In practice: ')+'</b>'+(LANG==='zh'?sp.useZh:sp.useEn)+' '+badge(sp.useTier)+'</p>'
+      + '</div></div>';
+  }
+  el.innerHTML = '<p class="lede">'+(LANG==='zh'
+      ? '按类群看。每条结论后面都有证据等级——<span class="ev ev-measured">实测</span>是发表过的电生理或光谱测量，<span class="ev ev-field">田间试验</span>是发表过的田间或选择试验，<span class="ev ev-mech">机理推断</span>是从已发表机制推出来、但对这一类群没有直接测过的。三级都能在「资料来源」页找到出处。每张卡片左边的色条不是装饰，它画的是该类群<b>反应最强的波段</b>，由数据直接生成：波段窄就接近纯色，波段宽就是一条渐变。'
+      : 'By group. Every claim carries an evidence tier — <span class="ev ev-measured">Measured</span> is published electrophysiology or spectral measurement, <span class="ev ev-field">Field trial</span> is a published field or choice test, <span class="ev ev-mech">Mechanism</span> is inferred from a published mechanism but not directly measured for that group. All three trace to the Sources tab. The colour bar on each card is not decoration — it renders the band carrying that group\'s <b>strongest documented response</b>, generated straight from the data: a narrow band reads as near-solid, a broad one as a gradient.')
+    +'</p><div class="filters">'+f+'</div>'+list;
+
+  el.querySelectorAll('[data-g]').forEach(function(b){
+    b.addEventListener('click', function(){ curGuild = b.getAttribute('data-g'); renderSpecies(); });
+  });
+  el.querySelectorAll('[data-toggle]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-toggle');
+      openSp[id] = !openSp[id];
+      renderSpecies();
+    });
+  });
+}
+
+/* =========================================================
+   VIEW: WHEN TO REPLACE A CARD
+   A standard-area comparator. People systematically misjudge percent cover by
+   eye, so the patches are generated at exact known coverages to compare against.
+   ========================================================= */
+var COV_STEPS = [5,10,15,20,25,30,35,40,50,60,70,80];
+var covPick = 15;
+var COV_CACHE = {};
+
+function covPatch(pct, w, hgt){
+  var ck = pct+'x'+w+'x'+hgt;
+  if(COV_CACHE[ck]) return COV_CACHE[ck];
+  /* deterministic placement so a given panel always looks the same */
+  var seed = pct*7919 + 13, area = w*hgt;
+  /* mulberry32 — a plain LCG degenerates on some seeds and repeats dot
+     positions, which silently drops the painted fraction. */
+  function rnd(){
+    seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  var rx=1.15, ry=0.62, dotArea=Math.PI*rx*ry;
+  /* Two corrections, or the panel would not show the coverage it claims.
+     1. Ellipses are scaled by a random factor in [0.8,1.3]; mean AREA scales
+        by E[s^2] = 1.1233, not by E[s].
+     2. Dots land independently and overlap, so visible cover is
+        1 - exp(-lambda) for total drawn area lambda. Invert it. */
+  var meanS2 = 1.1233;
+  var lambda = -Math.log(1 - pct/100);
+  /* Scatter centres over the panel PLUS a margin, so dots may overhang and
+     clip at the edges. Insetting them instead leaves the margins under-filled,
+     and the shortfall grows with coverage. */
+  var m = rx*1.3;
+  var outerW = w + 2*m, outerH = hgt + 2*m;
+  var count = Math.round(outerW*outerH*lambda/(dotArea*meanS2));
+  var g='';
+  for(var i=0;i<count;i++){
+    var cx=rnd()*outerW - m, cy=rnd()*outerH - m;
+    var rot=Math.round(rnd()*180), sc=0.8+rnd()*0.5;
+    g += '<ellipse cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" rx="'+(rx*sc).toFixed(2)
+       + '" ry="'+(ry*sc).toFixed(2)+'" transform="rotate('+rot+' '+cx.toFixed(1)+' '+cy.toFixed(1)+')"/>';
+  }
+  COV_CACHE[ck] = '<svg viewBox="0 0 '+w+' '+hgt+'" preserveAspectRatio="none" class="covsvg">'
+       + '<rect width="'+w+'" height="'+hgt+'" fill="#f2d63d"/><g fill="#2b2410">'+g+'</g></svg>';
+  return COV_CACHE[ck];
+}
+
+function covVerdict(pct){
+  if(pct < 15) return {zh:'新板。继续用。',en:'Fresh. Keep using it.',cls:'ok'};
+  if(pct < 20) return {zh:'正常。还在有效工作，继续挂。',en:'Normal. Still working — leave it up.',cls:'ok'};
+  if(pct < 30) return {zh:'接近该换了。粘力还在，但已经开始变差，下一轮巡园就换掉。',en:'Approaching replacement. Still catching, but falling off — swap it on your next round.',cls:'warn'};
+  if(pct < 40) return {zh:'换掉。可用的胶面已经不够，飞过来的虫有相当一部分粘不住了。',en:'Replace it. Too little free adhesive left — a sizeable share of what arrives is no longer being held.',cls:'warn'};
+  if(pct < 60) return {zh:'早该换了。这张板现在挡的虫，比它抓的还多。',en:'Well overdue. This card is now blocking more insects than it holds.',cls:'bad'};
+  return {zh:'这张板已经不抓虫了，只是挂在那里。如果每次收板都是这个样子，说明换板间隔定得太长，不是虫太多。',en:'This card has stopped catching. It is just hanging there. If cards routinely come back like this, the replacement interval is too long rather than the pressure being high.',cls:'bad'};
+}
+
+function renderCoverage(){
+  var el = document.getElementById('v-cardid');
+  var h = '<p class="lede">'+(LANG==='zh'
+    ? '把板举起来，和下面的色块比一比，选最接近的一格。人眼估「覆盖了百分之几」是出了名的不准——低的会高估，高的会低估——所以下面每一格都是按精确面积生成的参照，不是画着好看。'
+    : 'Hold the card up, compare it with the panels below, and tap the closest match. People are notoriously bad at judging percent cover by eye — overestimating at the low end, underestimating at the high end — so each panel is generated at an exact area fraction to compare against, not drawn by feel.')+'</p>';
+
+  h += '<div class="covgrid">';
+  for(var i=0;i<COV_STEPS.length;i++){
+    var pc = COV_STEPS[i];
+    h += '<button class="covcell'+(covPick===pc?' on':'')+'" data-cov="'+pc+'">'
+       + covPatch(pc, 60, 40)
+       + '<span class="covpc">'+pc+'%</span></button>';
+  }
+  h += '</div>';
+
+  h += '<div class="card" id="covVerdict"></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'比对时注意':'When you compare')+' '+badge('field')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '真板不会像上面这样均匀。白粉虱和蓟马在板上会往<b>两侧和上缘</b>集中，所以常常是边缘先满、中间还空。<b>按最密的那一片算，不要按整张板的平均算</b>——虫是从边缘进来的，边缘一饱和，这张板对新来的虫就已经不灵了，中间那块空白救不了它。'
+      : 'A real card does not fill evenly like the panels above. Whiteflies and thrips cluster toward the <b>sides and upper edge</b>, so the margins fill while the middle is still open. <b>Judge by the densest patch, not by the average.</b> Insects arrive at the margin, and once the margin saturates the card has stopped working for new arrivals — the empty middle does not rescue it.')+'</p></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'换板规则':'The replacement rule')+' '+badge('mech')+'</h3>'
+    + '<ul class="tight">'
+    + '<li>'+(LANG==='zh'?'<b>覆盖到 20–30% 就换</b>，不要等它看起来「满」。看起来满的时候，它早就不抓虫了。':'<b>Replace at 20–30% cover.</b> Do not wait until it looks full — by the time it looks full it stopped catching a long while ago.')+'</li>'
+    + '<li>'+(LANG==='zh'?'<b>或者每周换一次</b>，以先到者为准。虫压高的时候，一周之内就会到 30%。':'<b>Or replace weekly</b>, whichever comes first. Under pressure a card reaches 30% well inside a week.')+'</li>'
+    + '<li>'+(LANG==='zh'?'覆盖率不是唯一理由：起了一层灰、淋过大雨、胶面结皮不粘手、或者黄色被晒褪——任何一条都要换。':'Cover is not the only trigger: a film of dust, heavy rain, glue that has skinned over and no longer tacks, or yellow that has faded in the sun — any one of those means replace.')+'</li>'
+    + '</ul></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'为什么门槛这么低':'Why the threshold is this low')+' '+badge('field')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '因为一张板的捕获力不是「满了才失效」，而是<b>从第一只虫开始就在往下掉，而且掉得不是线性的</b>。在一项诱蛾板的饱和研究里，虫体和鳞片在胶面上堆积，捕获效率随之下降，每板 50 只以下就已经呈非线性衰减。'
+      : 'Because a card does not work fully until it is full and then stop. Its catching power <b>starts falling from the first insect, and not in a straight line</b>. In a moth-trap saturation study, capture efficiency fell as bodies and scales built up on the glue, with the decline already nonlinear below 50 moths per trap.')+'</p>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '两件事同时发生：可用的胶面变少，而且已经粘住的虫体本身成了一层垫子，后来的虫踩在上面反而能飞走。所以一张 40% 的板不是「还有 60% 的能力」——它的实际捕获力远低于 60%。'
+      : 'Two things happen at once: there is less free adhesive, and the bodies already stuck form a layer that later arrivals can land on and walk off. So a card at 40% cover does not have 60% of its power left — the real figure is well below that.')+'</p>'
+    + '<p class="note sub">'+(LANG==='zh'
+      ? '（如果你另外还在记数，那就多一条理由：饱和程度不同的两张板，数字之间没有可比性——看起来「虫少了」，其实只是板满了。）'
+      : '(If you also keep counts, there is a second reason: two cards at different saturation are not comparable. It reads as fewer insects when it is really just a fuller card.)')+'</p></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'关于 20–30% 这个数字':'On the 20–30% figure')+' '+badge('mech')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '要讲清楚：目前没有同行评审的研究给出一个「换板覆盖率」的标准值。20–30% 来自商业与推广渠道的通行做法，同一类来源里也有人写 50–70%。我采用低的那一档，理由是上面那条饱和曲线——既然衰减从很早就开始，把门槛定低的代价只是多花几张板，定高的代价是整季的数字都不能比。'
+      : 'Stated plainly: no peer-reviewed study gives a standard replacement coverage. The 20–30% figure comes from commercial and extension practice, and the same kind of source elsewhere says 50–70%. I use the lower band because of the saturation curve above — since the decline starts early, setting the threshold low costs a few extra cards, while setting it high costs the comparability of a whole season of numbers.')+'</p></div>';
+
+  el.innerHTML = h;
+  /* The twelve panels are ~7000 SVG elements. Re-rendering the view on every
+     tap re-parses all of them, so a tap only restyles the cells and rewrites
+     the verdict card. */
+  var cells = el.querySelectorAll('[data-cov]');
+  function paintVerdict(){
+    var v = covVerdict(covPick), box = document.getElementById('covVerdict');
+    if(!box) return;
+    box.className = 'card cov-'+v.cls;
+    box.innerHTML = '<h3>'+covPick+'% '+(LANG==='zh'?'覆盖':'covered')+'</h3>'
+      + '<p class="note" style="font-size:1.05rem;font-weight:600">'+t(v)+'</p>';
+  }
+  cells.forEach(function(b){
+    b.addEventListener('click', function(){
+      covPick = +b.getAttribute('data-cov');
+      cells.forEach(function(c){ c.classList.toggle('on', c === b); });
+      paintVerdict();
+    });
+  });
+  paintVerdict();
+}
+
+/* =========================================================
+   VIEW: ADVISOR
+   ========================================================= */
+var TARGETS = [
+ {id:'aphid', zh:'蚜虫', en:'Aphids'},
+ {id:'whitefly', zh:'白粉虱', en:'Whiteflies'},
+ {id:'thrips', zh:'蓟马', en:'Thrips'},
+ {id:'psyllid', zh:'木虱', en:'Psyllids'},
+ {id:'hopper', zh:'叶蝉／飞虱', en:'Leaf/planthoppers'},
+ {id:'noctuid', zh:'夜蛾·蛀果蛾', en:'Night moths & borers'},
+ {id:'beetle', zh:'甲虫', en:'Beetles'},
+ {id:'fruitfly', zh:'果实蝇', en:'Fruit flies'},
+ {id:'leafminer', zh:'潜叶蝇', en:'Leafminers'},
+ {id:'gnat', zh:'真菌蚊', en:'Fungus gnats'}
+];
+var GOALS = [
+ {id:'monitor', zh:'监测虫情', en:'Monitor pressure', subZh:'知道有没有、什么时候来', subEn:'Know if and when they arrive'},
+ {id:'suppress', zh:'压低虫口', en:'Suppress numbers', subZh:'诱杀，密度要大得多', subEn:'Mass trapping, much higher density'},
+ {id:'repel', zh:'避虫照明', en:'Keep insects away', subZh:'工寮、包装房、路灯', subEn:'Sheds, packing areas, path lights'}
+];
+var advT = 'thrips', advG = 'monitor';
+
+var RX = {
+ aphid:{tool:{zh:'黄色黏板（560–600 nm 反射面）',en:'Yellow sticky card (560–600 nm reflective)'},tier:'field',
+   why:{zh:'黄色对绿受体的刺激强于真实叶片，同时几乎不刺激蓝／紫外——这个反差就是降落信号。',en:'Yellow over-excites the green receptor relative to real foliage while barely touching blue/UV. That contrast is the landing cue.'},
+   how:{zh:'挂在新梢高度，与嫩叶同层；日出到日落有效，夜间无效。',en:'At flush height, level with the young leaves; works sunrise to sunset, nothing at night.'}},
+ whitefly:{tool:{zh:'不透光黄板（背面加深色底）',en:'Opaque yellow card (dark backing)'},tier:'field',
+   why:{zh:'与蚜虫同机制。不透光比半透明的捕获量高 1.5–7 倍。',en:'Same mechanism as aphids. Opaque beats translucent by 1.5–7×.'},
+   how:{zh:'贴近冠层、迎风面；加印黑色图案可再提高。',en:'Close to the canopy on the windward side; printed black patterns raise catch further.'}},
+ thrips:{tool:{zh:'榴莲用黄板；蔬菜花卉用蓝板',en:'Yellow on durian; blue on vegetables and flowers'},tier:'field',
+   why:{zh:'颜色由属决定，不是由「蓟马」这个名字决定。西花蓟马 Frankliniella 偏蓝 440–460 nm；Scirtothrips 属偏黄，而榴莲花期的 S. dorsalis 正属于这一属。',en:'The colour follows the genus, not the word "thrips". Frankliniella prefers blue at 440–460 nm; Scirtothrips prefers yellow, and the durian bloom pest S. dorsalis is in that genus.'},
+   how:{zh:'与花房同高，垂直挂在冠层稍上方。不要用蓝绿混合板——两者互相抵消。挂两周捕获量仍低，就整批换另一种颜色。',en:'At flower height, vertical and just above the canopy. Avoid combined blue-green cards — the two cancel. If catch is still low after two weeks, switch the whole batch to the other colour.'}},
+ psyllid:{tool:{zh:'黄板，不滤紫外',en:'Yellow card, UV not filtered out'},tier:'field',
+   why:{zh:'黄＋紫外的组合比纯黄更强，即使总亮度更低。',en:'Yellow plus UV beats yellow alone, even at lower total intensity.'},
+   how:{zh:'挂在抽梢期的新梢附近；花期前后可能要换颜色。',en:'Near new flush during flushing; the best colour may shift around bloom.'}},
+ hopper:{tool:{zh:'黄板（监测用量）',en:'Yellow card (monitoring density only)'},tier:'field',
+   why:{zh:'与其他刺吸类同型。',en:'Same pattern as the other sap-feeders.'},
+   how:{zh:'固定几个点、定期计数；不要铺满全园——天敌损失可能超过收益。',en:'A few fixed points, counted regularly. Do not saturate the block — predator losses can exceed the gain.'}},
+ noctuid:{tool:{zh:'UV-A LED 诱虫灯，365–400 nm',en:'UV-A LED trap lamp, 365–400 nm'},tier:'field',
+   why:{zh:'夜蛾对短波最敏感；灯型对照里加权平均波长约 382 nm 的灯捕获最高。',en:'Noctuids are most sensitive to short wavelengths; the best-performing lamp type sat near a 382 nm weighted mean.'},
+   how:{zh:'傍晚开启。灯不会把远处的蛾拉过来——它是短距离的，靠打乱背光反射把飞近的蛾困住。所以灯要放在虫源附近，不是园子中央。',en:'Switch on after dusk. The lamp does not pull moths in from a distance — entrapment is short-range, working by disrupting the dorsal light response of moths that fly close. Site lamps near the source, not in the middle of the block.'}},
+ beetle:{tool:{zh:'UV-A 灯（365–400 nm）',en:'UV-A lamp, 365–400 nm'},tier:'field',
+   why:{zh:'夜行甲虫的趋光集中在紫外区，但最佳波段随科属而变。',en:'Night-flying beetle phototaxis concentrates in the UV, but the optimum shifts between families.'},
+   how:{zh:'灯下加水盘或黏板承接落虫。傍晚开启，不必整夜。',en:'Water tray or sticky plate beneath the lamp to catch what drops. Switch on at dusk; all-night running is unnecessary.'}},
+ fruitfly:{tool:{zh:'甲基丁香油诱捕器＋蛋白饵剂',en:'Methyl eugenol traps plus protein bait'},tier:'field',
+   why:{zh:'颜色不是主线索。甲基丁香油只诱雄虫，蛋白饵才碰得到产卵的雌虫。',en:'Colour is not the main cue. Methyl eugenol lures males only; protein bait is what reaches the egg-laying females.'},
+   how:{zh:'配合套袋和清园落果，否则诱捕器只是在数虫。',en:'Pair with bagging and removing fallen fruit, or the traps are only counting.'}},
+ leafminer:{tool:{zh:'黄板，与作物同高',en:'Yellow cards at crop height'},tier:'field',
+   why:{zh:'成虫趋黄强，是黏板上最常见的双翅目之一。幼虫在叶片内部潜道里，任何板都打不到——板拦的是产卵前的成虫。',en:'Adults are strongly yellow-responsive and among the commonest flies on any card. The larvae are inside the leaf mines where no trap reaches them — cards intercept the adults before egg-laying.'},
+   how:{zh:'竖挂，与叶面同高。<b>不要为潜叶蝇铺诱杀密度</b>：它的寄生蜂通常把它压得很好，大发生多半是打药打掉天敌之后的反弹——把寄生蜂一起黏走会火上浇油。监测密度就够。',en:'Vertical, level with the foliage. <b>Do not saturate for leafminers</b>: their parasitoids usually keep them down, and outbreaks are mostly rebounds after sprays remove those enemies — mass-gluing the parasitoids feeds the fire. Monitoring density is enough.'}},
+ gnat:{tool:{zh:'黄板平放在基质表面或略高于表面',en:'Yellow cards flat on or just above the media surface'},tier:'field',
+   why:{zh:'成虫从基质羽化、飞得低、大部分时间贴着表面活动。UMass 和 Clemson 的推广指引都是「平放，不要竖挂在冠层」。',en:'Adults emerge from the media, fly low and spend most of their time near the surface. UMass and Clemson extension guidance is both explicit: lay them flat, do not hang them at canopy height.'},
+   how:{zh:'同时把基质表面弄干——黏板只抓成虫，抓不到基质里的幼虫和蛹。',en:'Dry the media surface at the same time — cards only take adults, never the larvae and pupae in the media.'}}
+};
+
+function renderAdvisor(){
+  var el = document.getElementById('v-advisor');
+  var tb='',gb='';
+  for(var i=0;i<TARGETS.length;i++){
+    var x=TARGETS[i];
+    tb += '<button class="opt'+(advT===x.id?' on':'')+'" data-t="'+x.id+'">'+t(x)+'</button>';
+  }
+  for(var j=0;j<GOALS.length;j++){
+    var g=GOALS[j];
+    gb += '<button class="opt'+(advG===g.id?' on':'')+'" data-goal="'+g.id+'">'+t(g)
+        + '<small>'+(LANG==='zh'?g.subZh:g.subEn)+'</small></button>';
+  }
+
+  var body='';
+  if(advG==='repel'){
+    var tgt = null;
+    for(var q=0;q<SPECIES.length;q++) if(SPECIES[q].id===advT) tgt = SPECIES[q];
+    var nightly = tgt && tgt.clock==='night';
+    body += '<div class="rx" style="border-left-color:'+(nightly?'var(--grn)':'var(--org)')+'">'
+      + '<h3>'+(nightly
+          ? (LANG==='zh'?'换灯有用——'+t(tgt)+'是夜行的':'Worth changing the light — '+t(tgt)+' fly at night')
+          : (LANG==='zh'?'换灯帮不了你——'+t(tgt)+'是昼行的':'Changing the light will not help — '+t(tgt)+' are day-active'))
+      + ' '+badge(nightly?'field':'measured')+'</h3>'
+      + '<p class="note">'+(nightly
+        ? (LANG==='zh'
+           ? '这一类会被夜间光源拉住，所以工寮、包装房、路灯的选择确实影响到你园里的虫压。下面的做法对它们有效。'
+           : 'This group is genuinely held by a light source at night, so what you put on the shed, the packing area and the path does affect pressure in your block. The steps below will work on them.')
+        : (LANG==='zh'
+           ? '夜间的灯本来就诱不到它们——它们白天飞，靠的是被照亮的色面而不是光源。换成暖色或红色灯不会减少这一类虫，只会让你觉得做了些什么。真正对它们有用的是白天那一侧：黏板的颜色和位置。'
+           : 'A lamp at night is not attracting them in the first place — they fly by day and respond to an illuminated surface, not to a source. Switching to warm or red light will not reduce this group; it will only feel like an action. What works on them sits on the daytime side: card colour and placement.'))+'</p>'
+      + (nightly ? '' : '<p class="note sub">'+(LANG==='zh'
+          ? '有一个例外值得知道：紫外虽然诱不到它们，却是它们起飞和迁飞的信号。所以减少紫外（滤紫外薄膜、光选择性防虫网）在育苗区确实能压低迁入——但那是白天的措施，跟夜间照明无关。'
+          : 'One exception worth knowing: UV does not lure them, but it does enable their take-off and dispersal. Cutting UV with blocking film or photoselective netting does reduce immigration in a nursery — but that is a daytime measure and has nothing to do with your night lighting.')+'</p>')
+      + '</div>';
+    body += '<div class="rx"><h3>'+(LANG==='zh'?'暖色或红色 LED（>600 nm），并且遮光向下':'Warm or red LED (>600 nm), shielded and aimed down')+'</h3>'
+      + '<p class="note">'+(LANG==='zh'
+        ? '夜行昆虫对短波最敏感，所以把紫外和蓝成分去掉是对的方向。但「红光完全无害」讲过头了：红光对幼虫发育的影响与全黑无异，可是它同样降低了雌蛾的性信息素分泌，野外交配率也从全黑对照的 53% 降到 28%。原因是两个门槛不同——诱来虫需要强信号，打乱夜间节律只需要「不算黑」。'
+        : 'Night-flying insects are most sensitive to short wavelengths, so stripping UV and blue is the right direction. But "red is harmless" overstates it: red matched darkness for larval development, yet it still reduced female pheromone output, and field mating fell from 53% under a dark control to 28% under red. Two different thresholds — attracting an insect needs a strong signal, disrupting its night only needs "not dark".')
+      + ' '+badge('field')+'</p>'
+      + '<p class="note">'+(LANG==='zh'
+        ? '灯具比色温更重要：遮光罩、灯头向下、需要时才开。2024 年的飞行轨迹研究显示，昆虫是被近处的灯困住的，不是被远处拉过来的——所以「关掉不必要的灯」比「换灯泡」见效更快。'
+        : 'The fixture matters more than the colour temperature: shield it, aim it down, switch it on only when needed. The 2024 flight-path work shows insects are trapped by nearby lights rather than drawn from afar — so switching off unnecessary lights beats changing bulbs.')
+      + ' '+badge('measured')+'</p></div>';
+  } else {
+    var r = RX[advT] || RX.thrips;
+    body = '<div class="rx"><h3>'+t(r.tool)+' '+badge(r.tier)+'</h3>'
+      + '<p class="note"><b>'+(LANG==='zh'?'为什么：':'Why: ')+'</b>'+t(r.why)+'</p>'
+      + '<p class="note"><b>'+(LANG==='zh'?'怎么放：':'How: ')+'</b>'+t(r.how)+'</p></div>';
+    var dens = advT==='gnat'
+      ? {zh:'<b>平放</b>在基质表面或略高处，育苗盘每 2 m² 一张。',en:'Lay them <b>flat</b> on or just above the media, about one card per 2 m² of tray area.'}
+      : {zh:'每 200 m² 一张，约合每英亩 20 张。树长高就把板往上移，保持与目标虫层同高。每周查一次，虫压高时 2–3 天一次。',en:'One card per 200 m², roughly 20 per acre. Move them up as the tree grows so they stay level with the layer the pest is working. Check weekly, or every 2–3 days under high pressure.'};
+    var isLamp = (advT==='noctuid' || advT==='beetle');
+    var isLure = (advT==='fruitfly');
+    body += isLure
+      ? ('<div class="rx" style="border-left-color:var(--org)"><h3>'+(LANG==='zh'?'诱捕器挂在哪里':'Where to hang the traps')+' '+badge('mech')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '甲基丁香油是<b>气味诱捕</b>，规则和色板、诱虫灯都不同：挂在树冠中层的<b>阴凉处</b>，避开正晒——高温直晒会加快诱芯挥发失效；离叶面留出空间让气味散得开。以园缘和虫源方向为主，果实成熟区周边加密。'
+          : 'Methyl eugenol is an <b>odour lure</b>, and its rules differ from both cards and lamps: hang traps in the <b>shaded mid-canopy</b>, out of direct sun — heat and direct exposure shorten the lure\'s life — with clearance around them so the plume can spread. Weight them toward the block margin and the source direction, and add traps around ripening fruit.')+'</p>'
+        + '<p class="note sub">'+(LANG==='zh'
+          ? '记住它的边界：只诱雄虫。真正压住产卵的是蛋白饵剂和清园落果，诱捕器是配套不是主力。'
+          : 'Remember its limit: males only. Egg-laying pressure is controlled by protein bait and windfall sanitation; the traps are the accompaniment, not the lead.')+'</p></div>')
+      : isLamp
+      ? ('<div class="rx" style="border-left-color:var(--uv)"><h3>'+(LANG==='zh'?'灯装在哪里':'Where to put the lamp')+' '+badge('measured')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '<b>装在虫来的方向，不是园子中央。</b>诱虫灯是短距离装置——它困住飞近的虫，不会把远处的虫拉过来。所以一盏灯保护的是它周围那一圈，园中央的灯保护的就是园中央。'
+          : '<b>Site it toward where the moths come from, not in the middle of the block.</b> A trap lamp is short-range — it traps what flies close rather than drawing insects in. A lamp protects the ring around itself, so a lamp in the centre of the block protects the centre of the block.')+'</p>'
+        + '<ul class="tight">'
+        + '<li>'+(LANG==='zh'?'<b>几盏小的胜过一盏大的。</b>作用半径以米计，不是以英亩计——「一盏灯管几英亩」这种算法没有依据。':'<b>Several modest lamps beat one powerful one.</b> The useful radius is metres, not acres — "one lamp covers N acres" has no basis.')+'</li>'
+        + '<li>'+(LANG==='zh'?'装在<b>虫源边界</b>：邻着的杂林、老园、上一季发生重的那一边。坐果期则装在要保护的果位那一层。':'Put them at the <b>source boundary</b> — the adjacent scrub, the older block, whichever side was worst last season. At fruit set, put them at the fruit zone you are protecting.')+'</li>'
+        + '<li>'+(LANG==='zh'?'高度对准目标飞行的那一层。这里不给米数——流传的 1.8–2.5 m 没有试验支持。':'Height goes in the flight layer of the target. No figure here — the 1.8–2.5 m that circulates has no trial behind it.')+'</li>'
+        + '<li>'+(LANG==='zh'?'灯下加水盘或黏板承接落虫。傍晚开，约十点关。':'Water tray or sticky plate underneath to catch what drops. On at dusk, off around ten.')+'</li>'
+        + '<li>'+(LANG==='zh'?'<b>花期不要装在花房高度。</b>榴莲靠果蝠和夜行昆虫传粉，花期在花层开灯是拿坐果率换蛾。':'<b>Never at flower height during bloom.</b> Durian is bat- and night-insect-pollinated; a lamp in the flowering zone trades fruit set for moths.')+'</li>'
+        + '</ul></div>')
+      : ('<div class="rx" style="border-left-color:var(--yel)"><h3>'+(LANG==='zh'?'板挂在哪里':'Where to hang the cards')+' '+badge('mech')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '<b>先保证板是亮的。</b>黏板是反射式陷阱——没有光照在色面上就没有信号，塞在密冠层阴影里的黄板等于一块黑板。挂在冠层外缘、树冠开口处或迎光面，不要往树里塞。'
+          : '<b>First, make sure the card is lit.</b> A card is a reflective trap: with no light falling on the coloured surface there is no signal, and a yellow card buried in dense canopy shade is a black rectangle. Hang them at the canopy edge, in a gap, or on the outward face — never deep inside.')+'</p>'
+        + '<ul class="tight">'
+        + '<li>'+(LANG==='zh'?'<b>高度跟着虫找的那一层走</b>，不是树顶：抽梢期与新梢同高，花期与花房同高，坐果后回到梢层。':'<b>Height follows the layer the insect is searching</b>, not the top of the tree: at the flush during flushing, at panicle height during bloom, back to flush height after fruit set.')+'</li>'
+        + '<li>'+(LANG==='zh'?'垂直挂，两面都露出来，与枝叶留开距离——叶子碰到胶面就废了一块。':'Vertical, both faces exposed, clear of branches and leaves — foliage touching the glue writes off that patch.')+'</li>'
+        + '<li>'+(LANG==='zh'?'<b>朝向一致、位置固定</b>（例如全部东西向）。这样看到的变化是园子的变化，不是你挂法的变化。':'<b>Same orientation, fixed positions</b> (all facing east–west, say), so what changes is the block rather than your placement.')+'</li>'
+        + '<li>'+(LANG==='zh'?'<b>多出来的板放边界。</b>虫是从外面进来的——芒果园的数据显示捕获量随离园边距离下降，板也总是两侧和上缘先满。所以园边、迎风面、去年的热点各加一张，比全园平均摊开有用。':'<b>Extra cards go on the boundary.</b> Insects arrive from outside — mango orchard data shows catch falling with distance from the edge, and cards fill at their side and top margins first. One extra at the block edge, on the windward side, and at last season\'s hotspots beats spreading them evenly.')+'</li>'
+        + (advT==='gnat' ? '<li>'+(LANG==='zh'?'<b>真菌蚊例外：平放</b>在基质表面，不要竖挂——成虫从基质羽化，贴着表面飞。':'<b>Fungus gnats are the exception: lay them flat</b> on the media rather than hanging — the adults emerge from the medium and fly low.')+'</li>' : '')
+        + '</ul></div>');
+    body += isLure
+      ? ('<div class="rx" style="border-left-color:var(--grn)"><h3>'+(LANG==='zh'?'挂几个':'How many traps')+' '+badge('mech')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '监测用途下少量即可：园缘和成熟区各挂一两个、位置固定，比全园铺开更能告诉你虫什么时候进来。没有可引用的榴莲园密度试验，所以这里不给「每英亩几个」。'
+          : 'For monitoring, a few are enough: one or two at the margin and around ripening fruit, in fixed positions, tell you more about when flies arrive than a blanket layout would. No published durian density trial exists, so no per-acre figure is given.')+'</p></div>')
+      : isLamp
+      ? ('<div class="rx" style="border-left-color:var(--grn)"><h3>'+(LANG==='zh'?'装几盏':'How many lamps')+' '+badge('mech')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '<b>没有可引用的「每英亩几盏」。</b>既然作用是短距离的，盏数取决于你要护住哪几片，而不是园子有多大：先在压力最高的那一边装一盏，看它周围实际管到多远，再按同样的间距往两边补。'
+          : '<b>There is no citable lamps-per-acre figure.</b> Since the range is short, the number follows from which patches you need covered rather than from block area. Put one on the highest-pressure side, see how far its effect actually reaches, then add at that spacing.')+'</p>'
+        + '<p class="note sub">'+(LANG==='zh'
+          ? '宁可几盏小的，不要一盏大的——加功率不会等比例放大作用半径，只会多招非靶标。'
+          : 'Prefer several small lamps to one large one — raising wattage does not widen the effective radius proportionally, it mostly adds non-targets.')+'</p></div>')
+      : ('<div class="rx" style="border-left-color:var(--grn)"><h3>'+(LANG==='zh'?'挂多少':'How many cards')+' '+badge('field')+'</h3>'
+        + '<p class="note">'+t(dens)+'</p>'
+        + '<p class="note sub">'+(LANG==='zh'
+          ? '这是监测密度：够你知道虫来了没有、什么时候来。全园最少也要有一张，并在园边、迎风面和往年的热点多挂一张。'
+          : 'That is monitoring density — enough to tell you whether they have arrived and when. Keep at least one card per management unit, and add one at the block edge, on the windward side, and at last season\'s hotspots.')+'</p></div>');
+    if(advG==='suppress'){
+      body += '<div class="caution"><b>'+(LANG==='zh'?'诱杀密度的代价':'The cost of mass-trapping density')+'</b><br>'
+        + (LANG==='zh'
+          ? '把黏板从监测密度加到诱杀密度，捕到的天敌会同比例增加。豇豆田数据：黄板黏到的益虫是蓝板的 1.7 倍，其中瓢虫 63%、小花蝽 29%。诱虫灯把波长调离最佳点时，蛾没有多捕到，非靶标却明显增多。先算清楚你要牺牲多少天敌，再决定要不要铺满。'
+          : 'Scaling cards from monitoring to mass-trapping density scales beneficial catch with it. From cowpea data: yellow caught 1.7× the beneficials of blue — 63% ladybirds, 29% Orius. And tuning a lamp off its optimum caught no extra moths but distinctly more non-targets. Price the predator loss before saturating the block.')
+        + ' '+badge('field')+'</div>'
+        + '<div class="rx" style="border-left-color:var(--org)"><h3>'+(LANG==='zh'?'诱杀要这样挂':'Mass-trapping deployment')+' '+badge('field')+'</h3>'
+        + '<p class="note">'+(LANG==='zh'
+          ? '每 2–5 m² 一张，<b>只铺热点那一片</b>，不是全园。温室粉虱试验用的就是这个量级（每 5 m² 一张即见显著下降，热点常用到每 2 m² 一张）。全园按这个密度铺，天敌损失和成本都不划算。'
+          : 'One card per 2–5 m², <b>over the hotspot only</b>, never the whole block. That is the density greenhouse whitefly trials used — one per 5 m² produced a significant reduction, and one per 2 m² is common in hotspots. Applied block-wide, the predator loss and the cost stop being worth it.')+'</p>'
+        + '<p class="note sub">'+(LANG==='zh'
+          ? '要有心理准备：即使密度拉满，黏板也压不住一次爆发。它降低的是飞行压力和新定殖，真正把虫口压下去还是要靠其他手段。'
+          : 'Expect this much and no more: even at full density, cards will not bring an outbreak down. They reduce flight pressure and new colonisation; something else has to do the actual knockdown.')+'</p></div>';
+    }
+  }
+
+  el.innerHTML = '<p class="lede">'+(LANG==='zh'
+      ? '选目标和目的，得到一条有出处的建议——外加它的代价。'
+      : 'Pick a target and a goal for a sourced recommendation, and the cost that comes with it.')+'</p>'
+    + '<h3 style="font-size:1.02rem;margin-bottom:10px">'+(LANG==='zh'?'目标害虫':'Target')+'</h3>'
+    + '<div class="opts">'+tb+'</div>'
+    + '<h3 style="font-size:1.02rem;margin:20px 0 10px">'+(LANG==='zh'?'你要达到什么':'What you want')+'</h3>'
+    + '<div class="opts">'+gb+'</div>'
+    + body;
+
+  el.querySelectorAll('[data-t]').forEach(function(b){
+    b.addEventListener('click',function(){ advT=b.getAttribute('data-t'); renderAdvisor(); });
+  });
+  el.querySelectorAll('[data-goal]').forEach(function(b){
+    b.addEventListener('click',function(){ advG=b.getAttribute('data-goal'); renderAdvisor(); });
+  });
+}
+
+/* =========================================================
+   VIEW: DURIAN
+   ========================================================= */
+var DURIAN = [
+{ zh:'幼树期（1–3 年）', en:'Young trees (1–3 yrs)',
+  pestZh:'木虱、叶蝉、真菌蚊、蚜虫——都在新梢上',
+  pestEn:'Psyllids, leafhoppers, fungus gnats, aphids — all on the flush',
+  doZh:'黄板，每英亩约 20 张（每 200 m² 一张），垂直挂在抽梢高度、冠层稍上方，每周查一次。这个阶段树矮、冠层薄，黏板是全周期里最有把握的一环。',
+  doEn:'Yellow cards, about 20 per acre — one per 200 m² — vertical at flush height just above the canopy, checked weekly. Trees are short and canopies thin at this stage, so cards are the most reliable tool of the whole cycle.',
+  tier:'field',
+  watchZh:'新梢抽出时才是关键窗口，不抽梢时可以把板收起来——木虱跟着嫩叶走。',
+  watchEn:'The flush window is the whole game. Between flushes you can take the cards down — psyllids follow the young leaves.' },
+{ zh:'花期', en:'Bloom',
+  pestZh:'蓟马为主，其次夜蛾幼虫、花甲虫',
+  pestEn:'Mainly thrips, then noctuid larvae and flower beetles',
+  doZh:'黄板，每英亩约 20 张，与花房同高。通行的说法是花期用蓝板，但那条来自西花蓟马；榴莲花期的 Scirtothrips dorsalis 属于偏黄的那一属，在芒果园六色对照里偏黄，槟城的芒果园研究也验证了黄板计数与花穗实际虫量相关。挂两周捕获量仍低，再整批换蓝板。',
+  doEn:'Yellow cards, about 20 per acre, at flower height. The standard advice for bloom is blue, but that comes from Frankliniella. The durian bloom thrips Scirtothrips dorsalis is in the yellow-preferring genus, went to yellow in the six-colour mango trial, and Penang mango work validated yellow-trap counts against actual numbers on the panicles. If catch is still low after two weeks, switch the batch to blue.',
+  tier:'field',
+  watchZh:'这是全年最该克制的阶段。榴莲花在夜间散粉，主要传粉者是果蝠（尤其是长舌果蝠 Eonycteris spelaea），泰国和苏拉威西的相机陷阱研究都确认了这一点；夜蛾、夜行胡蜂、甲虫甚至蓟马也被记录为次要传粉者。花期在花房高度开 UV 灯，是拿坐果率去换蛾。要开就远离花区、限时。',
+  watchEn:'This is the stage to hold back. Durian sheds pollen at night and its main pollinators are fruit bats, above all the cave nectar bat Eonycteris spelaea — confirmed by camera-trap work in Thailand and Sulawesi. Moths, nocturnal wasps, beetles and even thrips are recorded as secondary pollinators. A UV lamp at flower height during bloom trades fruit set for moths. If you run one, keep it away from the flowering zone and limit the hours.' },
+{ zh:'坐果期', en:'Fruit set',
+  pestZh:'夜蛾、甲虫、果实蝇',
+  pestEn:'Noctuids, beetles, fruit flies',
+  doZh:'UV-A 灯（365–400 nm），傍晚开到十点左右，园缘与果位层。这一步针对的就是两种蛀果蛾：<b>榴莲果螟</b>（最重要的果实害虫）与<b>榴莲种籽蛀蛾</b>（泰国出口榴莲的头号采后害虫，推广指引明确建议灯诱压低成蛾）。种籽蛀蛾另有硬证据的补充手段——坐果后 6 周<b>套袋</b>，试验蛀果率 0% 对 5.44%。蛾一旦入果灯就管不到了，窗口只在成虫期。黄板减到每英亩 4–5 张维持基础监测。',
+  doEn:'UV-A lamps at 365–400 nm, dusk to about ten, at the margin and fruit zone. This step exists for the two fruit-boring moths: the <b>durian fruit borer</b> (the most serious fruit pest) and the <b>durian seed borer</b> (the leading postharvest pest of Thai export durian, for which extension guidance explicitly recommends light traps). For the seed borer there is a hard-evidence companion — <b>bagging</b> at 6 weeks after fruit set, 0% infestation against 5.44% in the trial. Once a borer is inside no lamp reaches it: the window is the adult flight. Cards drop to 4–5 per acre for baseline monitoring.',
+  tier:'field',
+  watchZh:'诱虫灯是短距离的：2024 年的三维飞行轨迹研究显示昆虫不是被远处的灯吸引过来，而是飞近之后被困住。所以「一盏灯管几英亩」这种算法本身就不成立。',
+  watchEn:'Lamps are short-range: the 2024 3-D flight-path work showed insects are not drawn in from a distance but trapped once they fly close. That makes any "one lamp covers N acres" arithmetic unsound from the start.' },
+{ zh:'成熟采收期', en:'Ripening & harvest',
+  pestZh:'果实蝇为主（落果、裂果继发）',
+  pestEn:'Mainly fruit flies (on fallen and split fruit)',
+  doZh:'甲基丁香油诱捕器＋清园落果，两者缺一不可。黄板维持每英亩 4–5 张的基础监测量。',
+  doEn:'Methyl eugenol traps plus clearing fallen fruit — both, not either. Keep cards at the 4–5 per acre baseline.',
+  tier:'field',
+  watchZh:'甲基丁香油只诱雄虫，而且只针对果实蝇——蛀果蛾类它不覆盖。只挂诱捕器不清落果，是在数果实蝇，不是在防果实蝇。果面若见白色棉絮状的<b>粉蚧</b>：板和灯都帮不了，处理蚂蚁和通风才有用（见虫谱）。',
+  watchEn:'Methyl eugenol lures males only, and only fruit flies — the boring moths are outside its reach. Traps without windfall clearing means counting fruit flies rather than controlling them. And white cottony <b>mealybugs</b> on the fruit surface are not a card or lamp problem — ants and airflow are the levers (see the Insects tab).' }
+];
+
+function renderDurian(){
+  var el = document.getElementById('v-durian');
+  var h = '<p class="lede">'+(LANG==='zh'
+    ? '按物候分阶段，每一阶段都给出可以直接照做的默认配置。密度沿用通行的监测惯例：垂直挂在冠层稍上方，每 200 m² 一张，约合每英亩 20 张。榴莲园本身没有专门的密度试验，但这个惯例在多种作物上通用，比凭空猜一个数字可靠得多。先照做，记录捕获量，再按自己的情况加减。'
+    : 'By phenological stage, each with a default you can act on directly. Density follows the standard monitoring convention: vertical, just above the canopy, about one card per 200 m² — roughly 20 per acre. There is no density trial specific to durian, but the convention holds across many crops and beats a guessed figure. Follow it, record the catch, then adjust for your own block.')+'</p>';
+  for(var i=0;i<DURIAN.length;i++){
+    var d = DURIAN[i];
+    h += '<div class="card"><h3>'+t(d)+'</h3>'
+      + '<div class="kv"><b>'+(LANG==='zh'?'主要害虫':'Main pests')+'</b><span>'+(LANG==='zh'?d.pestZh:d.pestEn)+'</span></div>'
+      + '<p class="note">'+(LANG==='zh'?d.doZh:d.doEn)+' '+badge(d.tier)+'</p>'
+      + '<div class="caution">'+(LANG==='zh'?d.watchZh:d.watchEn)+'</div></div>';
+  }
+  h += '<div class="card"><h3>'+(LANG==='zh'?'装在哪里：黏板':'Placement: cards')+' '+badge('mech')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>最容易做错的一条：把板挂进阴影里。</b>黏板靠反射工作，冠层深处没有光照在色面上，那张板就是块黑板。挂在冠层外缘、开口处或迎光面。'
+      : '<b>The easiest thing to get wrong is hanging cards in shade.</b> A card works by reflection; deep inside the canopy there is no light on the coloured surface and the card is just a black rectangle. Hang them at the canopy edge, in a gap, or on the outward face.')+'</p>'
+    + '<ul class="tight">'
+    + '<li>'+(LANG==='zh'?'高度跟着虫找的那一层：抽梢期与新梢同高，花期与花房同高，坐果后回到梢层。乔木不能照搬「冠层稍上方」——那条规则是给矮作物的。':'Height follows the layer the insect is searching: at the flush, then at panicle height during bloom, then back to the flush. Do not copy "just above the canopy" onto a tall tree — that rule was written for low crops.')+'</li>'
+    + '<li>'+(LANG==='zh'?'垂直，两面露出，与枝叶留距离；朝向一致、位置固定。':'Vertical, both faces exposed, clear of foliage; same orientation and fixed positions.')+'</li>'
+    + '<li>'+(LANG==='zh'?'多的板放园边和迎风面——虫从外面进来，捕获量随离园边距离下降。':'Extra cards on the block edge and windward side — insects arrive from outside, and catch falls with distance from the edge.')+'</li>'
+    + '</ul></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'装在哪里：诱虫灯':'Placement: lamps')+' '+badge('measured')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>灯是短距离的。</b>它困住飞近的虫，不会把远处的虫拉过来——所以它保护的是自己周围那一圈。装在虫来的那一边（邻着的杂林、老园、去年发生最重的一侧），不要装在园子中央；坐果期装在要保护的果位那一层。几盏小的胜过一盏大的。'
+      : '<b>Lamps are short-range.</b> They trap what flies close rather than drawing insects in, so a lamp protects the ring around itself. Site them on the side the moths come from — adjacent scrub, an older block, whichever side was worst last season — not in the middle. At fruit set, put them at the fruit zone you are protecting. Several modest lamps beat one powerful one.')+'</p>'
+    + '<div class="caution">'+(LANG==='zh'
+      ? '<b>花期例外：不要装在花房高度。</b>榴莲主要靠果蝠和夜行昆虫传粉，花期在花层开灯是拿坐果率去换蛾。要开就远离花区并限时。'
+      : '<b>Bloom exception: not at flower height.</b> Durian is mainly bat- and night-insect-pollinated, so a lamp in the flowering zone during bloom trades fruit set for moths. If you run one, keep it away from the flowering area and limit the hours.')+'</div></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'适用范围与外推说明':'Scope and extrapolation')+' '+badge('mech')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>密度指标可外推，高度指标不可。</b>每 200 m² 一张的布板密度在多种作物上有一致的实践依据，外推至榴莲园的风险较低。挂板高度则不同：现有黏板研究均在矮秆作物或温室条件下完成，其冠层结构与乔木果园不可直接类比，因此本页的高度建议属机理外推，尚未经田间验证。榴莲园的诱虫灯安装高度与间距亦无公开试验数据。'
+      : '<b>The density figure extrapolates; the height figures do not.</b> One card per 200 m² rests on consistent practice across a range of crops, and carries low risk when transferred to durian. Card height is a different matter: the available sticky-card trials were conducted on low-growing crops or under greenhouse conditions, whose canopy structure is not directly comparable to a tree orchard, so the height guidance on this page is extrapolated from mechanism and remains unvalidated in the field. No published data exist for lamp height or spacing in durian either.')+'</p>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>关于诱虫灯布设位置，现有依据存在分歧。</b>诱虫灯作用距离短，据此应布设于园内目标区附近；而传统布防原则主张将诱源置于外围，以免将害虫引向受保护对象。鉴于作用距离确实有限，后一项顾虑的权重已经下降，但现有证据不足以将其排除。'
+      : '<b>The evidence on lamp siting is divided.</b> Short-range entrapment argues for placing lamps near the target area inside the block, while the established principle of keeping an attractant at the perimeter argues against drawing pests toward the crop being protected. Given how limited the range genuinely is, the second consideration carries less weight than it once did, but the available evidence is not sufficient to dismiss it.')+'</p>'
+    + '<p class="note sub">'+(LANG==='zh'
+      ? '本软件采取的折中方案：常规布设于虫源方向的园缘；坐果期移至需保护的果位层；花期一律远离花区并限时开启。'
+      : 'The compromise adopted here: site lamps at the block margin on the side the pressure comes from; move them to the fruit zone being protected at fruit set; and during bloom keep them away from the flowering area and limit the hours.')+'</p></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'先定一件事：你要监测还是要诱杀':'Decide one thing first: monitoring or mass trapping')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>默认走监测。</b>每 200 m² 一张（约每英亩 20 张），位置固定，每周计数，用来决定什么时候动手。诱杀是每 2–5 m² 一张、只铺热点那一片，不铺全园——两者的天敌代价差一个数量级，而诱杀在乔木果园的证据远比在封闭温室里弱。榴莲园不是温室。'
+      : '<b>Default to monitoring.</b> One card per 200 m², roughly 20 per acre, fixed positions, counted weekly, used to time an intervention. Mass trapping is one per 2–5 m² over a hotspot only, never block-wide — the predator cost differs by an order of magnitude, and the evidence is far weaker in tree orchards than in closed greenhouses. A durian block is not a greenhouse.')
+    + ' '+badge('field')+'</p></div>';
+  el.innerHTML = h;
+}
+
+/* =========================================================
+   VIEW: MECHANISMS
+   ========================================================= */
+var MECH = [
+{
+ zh:'复眼里的三类受体', en:'Three receptor classes in the compound eye',
+ tier:'measured',
+ bodyZh:'多数昆虫是紫外–蓝–绿三色型，受体峰值大致落在 350、440、530 nm 附近。这套配置在昆虫里相当保守：熊蜂实测 347／424／539 nm，蚜虫约 330、490、530 nm，白粉虱的 ERG 峰值在约 340 与 520 nm。少数类群多出第四类——某些蝴蝶有对长波敏感的红受体，把可见范围往红端延伸。',
+ bodyEn:'Most insects are UV-blue-green trichromats with receptor peaks near 350, 440 and 530 nm. The layout is conservative across the class: bumblebees measure at 347/424/539 nm, aphids near 330, 490 and 530, and whitefly ERG peaks sit near 340 and 520. A minority add a fourth class — some butterflies carry a long-wavelength red receptor extending their range toward the red end.',
+ soZh:'由此推出一条硬性限制：红光（>620 nm）对绝大多数昆虫近乎不存在。不是因为红光弱，而是因为它们没有接收红光的受体。',
+ soEn:'That yields a hard constraint: red light beyond 620 nm barely exists for most insects — not because red is weak, but because they have no receptor to catch it.'
+},
+{
+ zh:'颜色拮抗：为什么黄板比绿板好', en:'Colour opponency: why yellow beats green',
+ tier:'field',
+ bodyZh:'刺吸类昆虫的降落反应不由「哪个受体被激发最多」决定，而由长波与短波的比值决定：绿受体（约 500–640 nm）给正输入，蓝与紫外受体（约 300–500 nm）给负输入。黄色反射面长波极高、短波极低，这个比值比任何真实叶片都极端——文献称之为「超常态叶片信号」。它不是「像嫩叶」，是「比嫩叶更像嫩叶」。',
+ bodyEn:'The landing response in sap-feeders is not driven by which receptor fires hardest but by the ratio of long-wave to short-wave energy: positive input from the green receptor (about 500–640 nm), negative from blue and UV (about 300–500 nm). A yellow surface is very high long-wave and very low short-wave, a ratio more extreme than any real leaf. The literature calls it a supernormal foliage stimulus — not leaf-like, but more leaf-like than a leaf.',
+ soZh:'三条可以直接用的推论：不透光黄板比半透明的捕获量高 1.5–7 倍（透光会漏进短波、压低比值），加印黑色图案还能再提高；蓝绿混合会互相抵消，因为蓟马对蓝和绿各有一套独立机制；木虱对「黄＋紫外」的反应强于纯黄，即使总亮度更低——完全滤掉紫外未必划算。',
+ soEn:'Three usable consequences. Opaque cards out-catch translucent ones by 1.5–7× because translucency leaks short-wave energy and flattens the ratio, and printed black patterns add more. Mixed blue-green cancels itself, because thrips run blue and green as two separate mechanisms. And psyllids respond more strongly to yellow plus UV than to yellow alone even at lower total intensity, so filtering UV out completely is not automatically a gain.'
+},
+{
+ zh:'白天的色面，与夜间的光源', en:'A lit surface by day, a light source by night',
+ tier:'mech',
+ bodyZh:'这是整个领域最容易被混掉的一条。反射诱引（黏板）在白天成立：环境光照亮一个色面，昆虫在找寄主，色面提供的是降落信号。没有阳光就没有信号——夜里的黄板是一块黑板。主动光源（诱虫灯）在夜间成立：光源本身比背景亮，触发的是完全不同的一套飞行行为。',
+ bodyEn:'This is the distinction most often collapsed. Reflective attraction — sticky cards — works by day: ambient light illuminates a coloured surface, the insect is host-searching, and the surface supplies a landing cue. No sunlight, no cue; a yellow card at night is a black card. An active source — a trap lamp — works at night, when the source outshines the background, and it triggers an entirely different flight behaviour.',
+ soZh:'把两者合并成一张「波长 × 昆虫」表，就会推出「580 nm 黄灯可以夜间诱蚜虫」这种<b>错误结论</b>。它错两次：蚜虫夜里根本不飞（白天迁飞、天黑前降落）；而且它对黄的反应是白天挑叶面降落的反应，不是扑向光源的趋光——夜里的黄灯等于对着空场放广告。挑选任何一条建议时，先看它讲的是黏板还是灯。',
+ soEn:'Collapse the two into one wavelength-by-insect table and you derive <b>false conclusions</b> like "a 580 nm lamp will pull aphids at night". That one is wrong twice over: aphids do not fly at night at all (they migrate by day and settle before dark), and their yellow response is a daytime landing decision on surfaces, not phototaxis toward a source — a yellow lamp after dark is advertising to an empty sky. Before acting on any recommendation, check whether it is about a card or a lamp.'
+},
+{
+ zh:'夜间「趋光」其实是背光反射失灵', en:'Night "phototaxis" is a hijacked orientation reflex',
+ tier:'measured',
+ bodyZh:'2024 年的三维飞行轨迹研究（实验室动作捕捉＋哥斯达黎加野外立体摄影）发现：昆虫并不朝光源转向，而是把背部转向光源，结果飞出与光源垂直的航线。这叫背光反射——在自然界，最亮的半球就是天空，背朝它就知道哪边是上。人造光源把这个基准打乱，于是出现绕圈、失速、翻转。「escape to light」和「月亮导航」两套旧解释都被这批数据排除了。',
+ bodyEn:'The 2024 three-dimensional flight-path study — lab motion capture plus stereo videography in Costa Rica — found that insects do not steer toward light. They turn their dorsum toward it, producing flight paths perpendicular to the source. This is the dorsal light response: in nature the brightest hemisphere is the sky, so backing onto it tells them which way is up. An artificial source corrupts that reference, producing the orbiting, stalling and inverting. The older "escape to light" and "lunar navigation" explanations were both ruled out by this data.',
+ soZh:'三条推论：诱虫灯是短距离装置，困住飞近的虫而不是把远处的虫拉过来，所以「一盏灯覆盖 N 英亩」的算法不成立；灯的位置比功率重要，应该放在虫源方向而不是园子中央；避虫照明最有效的一步是遮光罩和向下打光，其次才是换灯泡颜色。',
+ soEn:'Three consequences. A trap lamp is short-range — it traps what flies close rather than drawing insects in, so "one lamp covers N acres" does not hold. Placement beats wattage: site lamps toward the source, not in the middle of the block. And for keeping insects away, shielding and aiming downward do more than changing the bulb colour.'
+},
+{
+ zh:'两套相反的光反应：飞走，还是降落', en:'Two opposing light responses: fly, or land',
+ tier:'measured',
+ bodyZh:'蚜虫在 330–340 nm 有一个实测的紫外受体，但它驱动的不是「被吸引过来」，而是起飞和维持迁飞——紫外是「开阔天空」的信号，意思是往上、离开叶面。降落是另一套：由绿受体主导的长波信号（约 530–580 nm）触发，意思是往下、停在这个面上。两套行为是中枢性拮抗的：蚜虫的经典试验显示飞行会主动抑制降落反应。白粉虱上量得更干脆——400 nm 触发起飞与持续飞行，550 nm 触发降落，两条通路互不干涉。',
+ bodyEn:'Aphids carry a measured UV receptor at 330–340 nm, but what it drives is not attraction — it is take-off and the maintenance of migratory flight. UV is the open-sky signal, meaning up and away from foliage. Landing is a separate system, driven by long-wavelength input through the green receptor around 530–580 nm, meaning down and onto this surface. The two are centrally antagonistic: classic aphid experiments showed flight actively inhibits the settling response. Whitefly gives the cleanest measurement — 400 nm elicits take-off and sustained flight, 550 nm elicits settling, and the two pathways do not interact.',
+ soZh:'所以紫外灯对蚜虫不是「效果差的诱捕」，而是发错了信号：它说的是「继续飞」。光谱页把蚜虫 320–360 nm 标成「起飞反应（非诱捕）」而不是删掉，正是因为两种处理都会误导——删掉等于说蚜虫在 350 nm 看不见（它有实测受体），标成「灯」等于说紫外灯能诱到蚜虫（它不能）。真正可用的方向是反过来：紫外不足的环境会降低蚜虫、白粉虱、蓟马的飞行活动与迁入，这正是滤紫外薄膜和光选择性防虫网的原理。育苗区用得上，开阔的榴莲冠层用不上。',
+ soEn:'So a UV lamp aimed at aphids is not a weak trap — it is the wrong signal, and what it says is keep flying. The Spectrum tab marks the aphid 320–360 nm band as "take-off (not a trap)" rather than deleting it, because either alternative would mislead: removing it implies aphids are blind at 350 nm, which is false, and labelling it "lamp" implies a UV lamp catches aphids, which is also false. The usable move is the reverse one — UV-deficient environments reduce flight activity and immigration of aphids, whiteflies and thrips, which is the principle behind UV-blocking films and photoselective nets. Workable in a nursery block, not over an open durian canopy.'
+},
+{
+ zh:'感光峰值 ≠ 最佳诱捕颜色', en:'Receptor peak is not best trap colour',
+ tier:'mech',
+ bodyZh:'这是读任何一张光谱表时最该带着的一条。受体峰值是生理量，由电生理测出来；最佳诱捕颜色是行为量，由田间或选择试验测出来。两者经常不一样，而且不一样是有原因的：绿受体峰值在 530 nm，最好的黏板却是 560–600 nm 的黄。补上关键一步：<b>530 nm 处蓝受体还没归零</b>，负输入仍在扣分；到 585 nm，绿受体只降了一些，蓝受体却几乎降到零——所以比值在绿峰之外才达到最大。到「光谱」页把光标从 530 拖到 585，看蓝色那条曲线塌下去，就是这一步。',
+ bodyEn:'Carry this into any spectral table you read. Receptor peak is a physiological quantity measured by electrophysiology; best trap colour is a behavioural quantity measured in field or choice tests. They routinely differ, and the difference has a cause: the green receptor peaks at 530 nm while the best card is 560–600 nm yellow. The step that closes the gap: <b>at 530 nm the blue receptor has not yet reached zero</b>, so the negative input is still subtracting; by 585 nm green has dropped only somewhat while blue has collapsed almost entirely — which is why the ratio peaks beyond the green peak. Drag the cursor from 530 to 585 on the Spectrum tab and watch the blue curve fall away: that is this step, drawn.',
+ soZh:'任何一张把两者放进同一列的表，都会在某个地方出错。本软件把它们分开列：虫谱页的「感光峰值」是前者，波段反应和选灯选板页是后者。',
+ soEn:'Any table that puts both in one column will be wrong somewhere. They are kept apart here: the "Receptor peaks" line on each insect card is the first quantity; the band responses and the trap picker are the second.'
+},
+{
+ zh:'光谱选择性与非靶标', en:'Spectral selectivity and non-targets',
+ tier:'field',
+ bodyZh:'没有一种波长只对害虫有效。豇豆田对照：黄板黏到的益虫是蓝板的 1.7 倍，其中瓢虫占 63%、小花蝽占 29%。芒果园六色对照里，黄板对天敌冲击最大，白板最小。诱虫灯同样：把波长调离最佳点，蛾没有多捕到，非靶标却明显增加。茶园研究更直接地问了这个问题——黄板和诱虫灯捕到的天敌，可能比捕到的目标害虫还多。',
+ bodyEn:'No wavelength is pest-specific. In cowpea trials yellow cards caught 1.7× the beneficials of blue — 63% ladybirds, 29% Orius. In a six-colour mango orchard trial, yellow hit natural enemies hardest and white lightest. Lamps behave the same way: tuning off the optimum caught no additional moths but distinctly more non-targets. Tea plantation work asks the question most directly — yellow cards and light traps may remove more natural enemies than target pests.',
+ soZh:'所以「监测密度」和「诱杀密度」是两个不同的决定，代价差一个数量级。监测：少量、位置固定、定期计数，用来决定什么时候动手。诱杀：铺满，用捕获量本身当防治——在封闭温室里证据较强，在开放的乔木果园里弱得多。',
+ soEn:'That makes monitoring density and mass-trapping density two different decisions with costs an order of magnitude apart. Monitoring: a few cards, fixed positions, counted regularly, used to time an intervention. Mass trapping: saturation, where the catch itself is the control — well evidenced in closed greenhouses, far less so in open tree orchards.'
+},
+{
+ zh:'红光与避虫照明', en:'Red light and insect-free lighting',
+ tier:'field',
+ bodyZh:'先要摆正一件事：<b>红对昆虫不是一种颜色，是「暗」</b>。多数昆虫没有红受体，620–700 nm 在三条通路上都激发不出多少信号，所以一个红色表面在虫眼里不是红的，是接近黑的。红板如果真的捕到虫，多半靠的是明暗反差（浅色背景上的一块暗物），不是颜色偏好。长波因此是吸引力最低的区段：蛾对长波灯的趋性远低于紫外灯，灯型对照里捕获量随加权平均波长变长而下降。但「完全无影响」讲过头了，而且要分开讲：甘蓝夜蛾幼虫的发育试验里，绿光和白光影响了雄性幼虫的发育，红光则与全黑没有差别；性信息素试验里，红光却和绿光、暖白光一样降低了雌蛾的信息素分泌并改变了成分比例；野外交配试验中，全黑对照的交配率为 53%，红光下降到 28%。',
+ bodyEn:'Start with the right framing: <b>red is not a colour to an insect, it is darkness</b>. Most insects have no red receptor, so 620–700 nm raises little signal in any of the three channels and a red surface reads as near-black rather than as red. Where red traps do catch, they are most likely working on brightness contrast — a dark object against a pale background — not on colour preference. Long wavelengths are therefore the least attractive band: moth phototaxis to long-wave lamps runs far below UV, and across lamp types catch falls as the weighted mean wavelength rises. But "no effect" overstates it, and the picture splits. In cabbage moth larval development trials, green and white light affected male caterpillars while red did not differ from darkness. In pheromone trials red did reduce female output and shift the blend, just as green and warm white did. And in a field mating trial, 53% of females mated under a dark control against 28% under red.',
+ soZh:'两件事看起来矛盾，其实是两个不同的门槛：<b>触发趋光</b>需要受体给出足够强的信号，红光远远达不到；<b>打乱夜间节律</b>只需要光子告诉身体「现在不算黑」，这个门槛低得多。所以红光可以既「诱不到虫」又「仍在干扰虫」——暗不等于没有。实际排序：先关掉不必要的灯，再加遮光罩并向下打光，最后才是换灯泡颜色，换灯泡是三步里最弱的一步。',
+ soEn:'The two results only look contradictory because they sit at different thresholds. <b>Triggering phototaxis</b> needs a strong receptor signal, and red comes nowhere near it. <b>Disrupting a night rhythm</b> only needs photons telling the body it is not dark, and that bar is far lower. So red can genuinely fail to attract while still interfering — dark is not the same as absent. In order of effect: switch off what is not needed, then shield the fixture and aim it down, and only then change the bulb colour, which is the weakest of the three.'
+}
+];
+
+function renderMech(){
+  var el = document.getElementById('v-mech');
+  var h = '<p class="lede">'+(LANG==='zh'
+    ? '七条机理。看懂这几条，任何一张波长表你都能自己判断对错——包括本软件里的。'
+    : 'Seven mechanisms. Understand these and you can judge any spectral table on your own — including this one.')+'</p>';
+  for(var i=0;i<MECH.length;i++){
+    var m = MECH[i];
+    h += '<div class="card"><h3>'+t(m)+' '+badge(m.tier)+'</h3>'
+      + '<p class="note">'+(LANG==='zh'?m.bodyZh:m.bodyEn)+'</p>'
+      + '<div class="hr"></div>'
+      + '<p class="note"><b>'+(LANG==='zh'?'实际意义：':'Why it matters: ')+'</b>'+(LANG==='zh'?m.soZh:m.soEn)+'</p></div>';
+  }
+  el.innerHTML = h;
+}
+
+/* =========================================================
+   VIEW: VEGETABLES
+   The durian page extrapolates; this page mostly does not — the trial base
+   (greenhouse and low-crop work) was done on vegetable systems.
+   ========================================================= */
+function renderVeg(){
+  var el = document.getElementById('v-veg');
+  var h = '<p class="lede">'+(LANG==='zh'
+    ? '给菜农的默认配置。有一点值得先说：本软件引用的试验大多来自温室和矮秆作物——对菜园来说，这些证据是<b>本土的</b>，不像榴莲页那样需要外推。密度、高度、换板规则都可以直接照做。'
+    : 'Defaults for vegetable growers. One thing worth saying first: most of the trials this app cites come from greenhouses and low-growing crops — for a vegetable farm this evidence is <b>native</b>, not extrapolated the way the durian page must. Densities, heights and replacement rules apply as written.')+'</p>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'大田叶菜、瓜豆、辣椒':'Open-field leafy greens, cucurbits, beans, chilli')+' '+badge('field')+'</h3>'
+    + '<ul class="tight">'
+    + '<li>'+(LANG==='zh'?'<b>黄板，每 200 m² 一张（约每英亩 20 张）</b>，竖挂，板底与作物顶端齐平或略高。作物长高板跟着升——这条规则本来就是给矮作物写的。':'<b>Yellow cards, one per 200 m² (about 20 per acre)</b>, vertical, base level with or just above the crop top, raised as the crop grows — this rule was written for low crops in the first place.')+'</li>'
+    + '<li>'+(LANG==='zh'?'针对蚜虫、白粉虱、叶蝉、潜叶蝇：黄板通吃。选<b>不透明</b>的黄板——不透明黄板比半透明的多捕 1.5–7 倍。':'For aphids, whiteflies, hoppers and leafminers one yellow card covers all. Choose <b>opaque</b> yellow — opaque out-caught translucent 1.5–7×.')+'</li>'
+    + '<li>'+(LANG==='zh'?'辣椒、茄子、瓜类的<b>花期蓟马（西花蓟马属）用蓝板</b>，与花同高。蓝板黏蓟马是黄板的约 5 倍，且少黏天敌。':'For <b>flower thrips (Frankliniella) on chilli, brinjal and cucurbits use blue</b>, at flower height. Blue takes about 5× the thrips of yellow, with less bycatch.')+'</li>'
+    + '<li>'+(LANG==='zh'?'白粉虱压力大的作物（茄子、瓜类、番茄）：把密度加密到<b>每 90 m² 一张</b>。':'On whitefly-prone crops (brinjal, cucurbits, tomato) tighten to <b>one card per 90 m²</b>.')+'</li>'
+    + '</ul>'
+    + '<p class="note sub">'+(LANG==='zh'
+      ? '菜园比果园更需要早知道，原因是<b>病毒</b>：蚜虫、白粉虱、蓟马在菜上的主要危害往往是传毒，等看见虫害症状时毒已经进田了。板上最先出现的那几只，就是打药窗口的信号。'
+      : 'A vegetable farm needs the early warning more than an orchard does, because of <b>viruses</b>: on vegetables the main damage from aphids, whiteflies and thrips is often the diseases they carry, and by the time feeding symptoms show, the virus is already in the field. The first few on a card are the signal that the treatment window has opened.')+'</p></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'育苗棚与温室':'Nurseries and protected structures')+' '+badge('field')+'</h3>'
+    + '<ul class="tight">'
+    + '<li>'+(LANG==='zh'?'<b>滤紫外薄膜或防虫网</b>是这里最硬的一招：紫外是蚜虫、白粉虱、蓟马起飞和迁入的信号，把紫外滤掉能明显压低迁入量。露地做不到，棚里做得到。':'<b>UV-blocking film or netting</b> is the strongest tool here: UV is the take-off and immigration cue for aphids, whiteflies and thrips, and cutting it measurably reduces what comes in. Impossible in the open field, possible under cover.')+'</li>'
+    + '<li>'+(LANG==='zh'?'育苗盘上的真菌蚊：黄板<b>平放</b>在基质面，每 2 m² 一张。竖挂对它基本无效。':'Fungus gnats over trays: yellow cards <b>flat</b> on the media, one per 2 m². Hanging them does little.')+'</li>'
+    + '<li>'+(LANG==='zh'?'<b>诱杀（每 2–5 m² 一张）的证据就来自温室</b>：封闭空间、虫源有限，铺满热点才压得出效果。这一招搬到露地会大打折扣。':'<b>Mass trapping (one per 2–5 m²) is a greenhouse result</b>: a closed space with a finite population is where saturation works. It transfers poorly to the open field.')+'</li>'
+    + '</ul></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'瓜实蝇：别买错诱剂':'Melon fly: do not buy the wrong lure')+' '+badge('field')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '瓜类上蛀果的是<b>瓜实蝇（Zeugodacus cucurbitae）</b>，和榴莲、木瓜上那类果实蝇不是同一种。关键差别：<b>它不认甲基丁香油</b>。瓜实蝇的雄虫诱剂是<b>诱蝇酮（cue-lure）</b>——买瓶装诱剂时看清成分，买错了挂一季也是空的。'
+      : 'The borer in cucurbits is the <b>melon fly (Zeugodacus cucurbitae)</b> — not the same fly as on durian or papaya. The difference that costs money: <b>it does not respond to methyl eugenol.</b> The male lure for melon fly is <b>cue-lure</b> — read the label before buying, because the wrong bottle hangs empty all season.')+'</p>'
+    + '<p class="note sub">'+(LANG==='zh'
+      ? '两类通用的手段：蛋白饵剂对雌雄都有效；苦瓜、黄瓜、丝瓜<b>套袋</b>本来就是本地常规做法，对瓜实蝇也最直接。颜色在这里同样不是主线索。'
+      : 'What works across both flies: protein bait takes females as well as males, and <b>bagging</b> bitter gourd, cucumber and loofah — already routine local practice — is the most direct defence. Colour, here as with the durian fly, is not the main cue.')+'</p></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'小菜蛾：灯和板都不是主力':'Diamondback moth: neither lamp nor card is the tool')+' '+badge('mech')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '芥蓝、包菜、小白菜上最难缠的小菜蛾要说清楚：黏板黏到的很少，灯诱证据也薄弱——不要为它买灯。真正的杠杆是轮作断粮、苏云金杆菌（Bt）、保护寄生蜂，以及性信息素诱捕器（那是气味，不是光）。本软件的范围是视觉与趋光，小菜蛾恰好主要不在这个范围里。'
+      : 'For diamondback moth on kai lan, cabbage and pak choi, the honest statement is: cards take few, the lamp evidence is thin — do not buy a lamp for it. The working levers are rotation, Bt, protecting its parasitoids, and pheromone traps (an odour tool, not a visual one). This app covers vision and phototaxis, and DBM largely sits outside that scope.')+'</p></div>'
+    + '<div class="card"><h3>'+(LANG==='zh'?'夜蛾与灯':'Night moths and lamps')+' '+badge('field')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '斜纹夜蛾、甜菜夜蛾这类夜蛾适用「夜蛾·蛀果蛾」的灯诱规则：UV-A 365–400 nm，傍晚到十点，装在虫来的那一边。菜地通常没有传粉禁区的问题，但灯照着的那几行菜同样会引来产卵——灯别正对着最要保护的畦。'
+      : 'Armyworms and similar noctuids follow the same lamp rules as the moths-and-borers target: UV-A 365–400 nm, dusk to ten, sited on the side the moths come from. A vegetable plot rarely has the pollination constraint, but rows lit by the lamp still draw egg-laying — do not point it at the beds you most need to protect.')+'</p></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'菜园的天敌代价':'The bycatch cost on a vegetable farm')+' '+badge('field')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '本软件引用的益虫数据本来就是豆田量的：黄板黏到的天敌是蓝板的 1.7 倍，其中瓢虫 63%、小花蝽 29%。开花的菜（豆、瓜、茄果）边上尤其明显。所以默认监测密度，诱杀只铺热点；潜叶蝇一律不要诱杀——它的寄生蜂比板更能压住它。'
+      : 'The beneficial-bycatch figures this app cites were measured on a bean field: yellow takes 1.7× the natural enemies of blue, 63% of them ladybirds and 29% Orius. It shows most beside flowering vegetables. So default to monitoring density, saturate hotspots only — and never mass-trap leafminers, whose parasitoids suppress them better than any card.')+'</p></div>';
+
+  h += '<div class="card"><h3>'+(LANG==='zh'?'换板与认板':'Replacement')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '换板规则与「换板」页完全相同：覆盖 20–30% 或每周，先到为准；按最密的那一片判断。菜园虫量大，板满得比果园快，旺季常常等不到一周。'
+      : 'Replacement is exactly as on the When-to-replace tab: 20–30% cover or weekly, whichever first, judged by the densest patch. Vegetable farms load cards faster than orchards — in season a card often does not last the week.')+'</p></div>';
+
+  el.innerHTML = h;
+}
+
+/* =========================================================
+   VIEW: REFS
+   ========================================================= */
+var REF_KIND = {
+  paper:{zh:'同行评审',en:'Peer-reviewed'},
+  preprint:{zh:'预印本',en:'Preprint'},
+  practice:{zh:'推广／实务指引',en:'Extension / practice'},
+  official:{zh:'官方报告',en:'Official report'},
+  note:{zh:'来源冲突',en:'Sources conflict'}
+};
+var REFS = [
+ {a:'Briscoe & Chittka (2001)', t:'The evolution of colour vision in insects. Annu Rev Entomol 46:471–510.', kind:'paper', n:{zh:'紫外／蓝／绿三色型的基准综述。',en:'The baseline review for the UV/blue/green trichromat layout.'}},
+ {a:'Fabian, Sondhi, Allen, Theobald & Lin (2024)', t:'Why flying insects gather at artificial light. Nature Communications 15:689.', kind:'paper', n:{zh:'背光反射，推翻「朝光飞」。灯是短距离装置。',en:'The dorsal light response, overturning "flying toward light". Lamps are short-range.'}},
+ {a:'Kirchner, Döring & Saucke (2005)', t:'Evidence for trichromacy in the green peach aphid, Myzus persicae. Journal of Insect Physiology 51:1255–1260.', kind:'paper', n:{zh:'蚜虫受体峰值的一手来源：绿 ~530 nm、蓝绿 ~490 nm、近紫外 330–340 nm，ERG 在 320–640 nm 每 10 nm 测一次。',en:'The primary source for the aphid receptor peaks: green ~530 nm, blue-green ~490 nm, near-UV 330–340 nm, from ERG measured in 10 nm steps across 320–640 nm.'}},
+ {a:'Döring, Kirchner, Skorupski & Hardie (2011)', t:'Spectral sensitivity of the green photoreceptor of winged pea aphids. Physiological Entomology 36:392–396.', kind:'paper', n:{zh:'豌豆蚜的绿受体实测约 518 nm——说明绿受体位置在蚜虫属间会移动。',en:'The pea aphid green receptor measures near 518 nm, showing the green peak shifts between aphid species.'}},
+ {url:'https://link.springer.com/article/10.1007/s11829-006-9000-1', a:'Döring & Chittka (2007)', t:'Visual ecology of aphids — a critical review on the role of colours in host finding. Arthropod-Plant Interactions 1:3–16.', kind:'paper', n:{zh:'蚜虫颜色行为的批判性综述。',en:'The critical review of aphid colour behaviour.'}},
+ {a:'Kennedy & Booth', t:'Co-ordination of successive activities in an aphid: the effect of flight on the settling responses. Journal of Experimental Biology 40:351.', kind:'paper', n:{zh:'飞行与降落是中枢性拮抗的：飞行会主动抑制降落反应。',en:'Flight and settling are centrally antagonistic — flight actively inhibits the settling response.'}},
+ {a:'Moericke (1950; 1951)', t:'Über das Farbsehen der Pfirsichblattlaus. Zeitschrift für Tierpsychologie 7:263–274; and the original colour trap for monitoring aphid flight.', kind:'paper', n:{zh:'蚜虫两套颜色反应的最早描述，也是黄板监测法的起点。',en:'The earliest description of the aphid two-response system, and the origin of the yellow trap for flight monitoring.'}},
+ {a:'Ben-Yakir et al. (2012)', t:'Photoselective nets and screens for protecting crops from insect pests.', kind:'paper', n:{zh:'滤紫外与光选择性防虫网降低蚜虫、白粉虱、蓟马的迁入——「减少紫外」而不是「增加紫外」。',en:'UV-blocking and photoselective nets reduce immigration by aphids, whiteflies and thrips — subtracting UV rather than adding it.'}},
+ {a:'Archetti, Döring, Hagen et al. (2007)', t:'Are autumn foliage colours red signals to aphids? PLOS Biology 5(8):e187.', kind:'paper', n:{zh:'超常态叶片信号的机制解释与颜色拮抗图。',en:'Where the supernormal foliage stimulus and the opponency argument are laid out.'}},
+ {url:'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5814052/', a:'Sampson, Covaci, Hamilton et al. (2018)', t:'Reduced translucency and the addition of black patterns increase the catch of the greenhouse whitefly on yellow sticky traps. PLOS ONE 13(2):e0193064.', kind:'paper', n:{zh:'不透光黄板捕获量提高 1.5–7 倍；长波／短波比值的量化。',en:'Opaque cards raise catch 1.5–7×; quantifies the long-wave to short-wave ratio.'}},
+ {a:'Stukenberg et al.', t:'Wavelength-specific behaviour of the western flower thrips: evidence for a blue-green chromatic mechanism.', kind:'paper', n:{zh:'蓝最强、绿次之，且两者混合反而变差。',en:'Blue strongest, green second, and mixing the two makes it worse.'}},
+ {a:'Paris, Allan, Hall et al. (2017)', t:'Evidence of behavior-based utilization by the Asian citrus psyllid of a combination of UV and green or yellow wavelengths. PLOS ONE 12(12):e0189228.', kind:'paper', n:{zh:'黄＋紫外优于纯黄；半翅目在 <400 与 >600 nm 基本无反应。',en:'Yellow plus UV beats yellow alone; Hemiptera largely unresponsive below 400 and above 600 nm.'}},
+ {a:'Brehm et al. (2021)', t:'Moths are strongly attracted to ultraviolet and blue radiation. Insect Conservation and Diversity 14:188–198.', kind:'paper', n:{zh:'受控选择试验：84% 停在紫外灯，蓝 vs 长波时 63% 选蓝。',en:'Controlled choice tests: 84% at the UV lamp; 63% chose blue over longer wavelengths.'}},
+ {a:'van Langevelde, Ettema, Donners et al. (2011)', t:'Effect of spectral composition of artificial light on the attraction of moths. Biological Conservation 144:2274–2281.', kind:'paper', n:{zh:'加权平均 ~382 nm 的灯捕获最高；短波灯有体型偏差。',en:'Peak catch near a 382 nm weighted mean; short-wavelength lamps carry a body-size bias.'}},
+ {a:'van Geffen, van Grunsven, van Ruijven et al. (2014)', t:'Artificial light at night causes diapause inhibition and sex-specific life-history changes in a moth. Ecology and Evolution.', kind:'paper', n:{zh:'甘蓝夜蛾幼虫：绿光和白光下雄性幼虫化蛹更早、蛹重更低；红光与全黑无差别。',en:'Cabbage moth larvae: under green and white light male caterpillars pupated earlier at lower pupal mass; red did not differ from darkness.'}},
+ {a:'van Geffen, Groot, van Grunsven et al. (2015)', t:'Artificial night lighting disrupts sex pheromone production in a noctuid moth. Ecological Entomology 40:401–408.', kind:'paper', n:{zh:'红光同样降低雌蛾信息素分泌并改变成分比例——与光谱成分无关。野外交配试验：全黑 53%，红光 28%。',en:'Red light also reduced female pheromone output and shifted the blend, irrespective of spectral composition. Field mating: 53% under dark control, 28% under red.'}},
+ {a:'Shi, He, Yang et al. (2020)', t:'Are yellow sticky cards and light traps effective on tea green leafhoppers and their predators in Chinese tea plantations? Insects 12(1):14.', kind:'paper', n:{zh:'把天敌代价当成主问题来问的少数研究之一。',en:'One of the few studies that asks the predator-cost question head-on.'}},
+ {a:'Colored sticky traps to selectively survey thrips in cowpea (2015)', t:'Neotropical Entomology 44:365–373. Bean flower thrips Megalurothrips usitatus, South China.', kind:'paper', n:{zh:'本软件里 1.7 倍／63%／29% 三个数字的出处：黄板黏到的益虫是蓝板的 1.7 倍，其中瓢虫 63%、小花蝽 29%；蓟马则蓝板捕获量是黄板的五倍。',en:'The source of the 1.7×, 63% and 29% figures used here: yellow caught 1.7× the beneficials of blue, of which 63% ladybirds and 29% Orius, while blue caught five times the thrips of yellow.'}},
+ {url:'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9632929/', a:'Mango orchard colour trial (2022)', t:'Colored sticky traps for monitoring phytophagous thrips in mango agroecosystems, and their impact on beneficial insects. PLOS ONE.', kind:'paper', n:{zh:'六色对照：Scirtothrips 偏黄；黄板对天敌冲击最大，白板最小。',en:'Six colours: Scirtothrips went to yellow; yellow hit natural enemies hardest, white lightest.'}},
+ {a:'Mellor, Bellingham & Anderson (1997)', t:'Spectral efficiency of the glasshouse whitefly Trialeurodes vaporariorum. bioRxiv preprint 341610.', kind:'preprint', n:{zh:'白粉虱 ERG 峰值 ~340 与 ~520 nm；背侧小眼更偏紫外。',en:'Whitefly ERG peaks near 340 and 520 nm, with the dorsal eye region more UV-sensitive.'}},
+ {url:'https://www.biorxiv.org/content/10.1101/341610', a:'Stukenberg & Poehling', t:'Blue–green opponency and trichromatic vision in the greenhouse whitefly, Trialeurodes vaporariorum. bioRxiv preprint 341610.', kind:'preprint', n:{zh:'LED 选择试验＋颜色选择模型，估出绿 510–520、蓝 480–490、紫外 340–370 nm 三类受体，并证实蓝对绿的抑制。',en:'LED choice tests plus colour-choice models put receptors near 510–520 (green), 480–490 (blue) and 340–370 nm (UV), and confirm blue inhibiting green.'}},
+ {a:'Skorupski, Döring & Chittka (2007)', t:'Photoreceptor spectral sensitivity in island and mainland populations of the bumblebee, Bombus terrestris. Journal of Comparative Physiology A.', kind:'paper', n:{zh:'熊蜂 347／424／539 nm——传粉者的实测基准。',en:'Bumblebee at 347/424/539 nm — the measured pollinator baseline.'}},
+ {a:'Bumrungsri et al. (2009); Aziz et al. (2017); Sheherazade et al. (2019)', t:'Durian pollination ecology in southern Thailand, Peninsular Malaysia and Sulawesi.', kind:'paper', n:{zh:'果蝠（尤其 Eonycteris spelaea）是榴莲主要传粉者；蛾、夜行胡蜂、甲虫、蓟马为次要传粉者。',en:'Fruit bats, above all Eonycteris spelaea, are the main durian pollinators; moths, nocturnal wasps, beetles and thrips are secondary.'}},
+ {url:'https://www.cabidigitallibrary.org/doi/pdf/10.5555/20073012690', a:'Pests of minor tropical fruits (CABI chapter)', t:'Durian pest complex: Mudaria luteileprosa biology, oviposition on fruit spines, soil pupation; Sirisingh et al. (1994) rank it the most important postharvest pest in Thailand, with roughly half the fruit unmarketable where uncontrolled.', kind:'paper', n:{zh:'种籽蛀蛾生物学与危害等级的主要出处：产卵于果刺、幼虫蛀种、离果入土化蛹、失控时约半数果实不能上市。',en:'Main source for seed-borer biology and ranking: eggs on the spines, larvae to the seed, pupation in soil, and the ~50% unmarketable figure.'}},
+ {url:'http://www.itfnet.org/contents/fruit/fruitInfo/html/trdLevel1448.html', a:'International Tropical Fruits Network — durian pests', t:'Lists the durian pest complex (mealybugs, scale, psyllid, chafers Adoretus and Apogonia, the weevil Hypomeces, borers), names Conogethes punctiferalis the most serious pest, and recommends light traps against the seed borer.', kind:'practice', n:{zh:'果螟「最重要果实害虫」的定位、「架灯压低种籽蛀蛾成蛾」这条直接建议、以及粉蚧／金龟子等榴莲害虫名单的出处。',en:'Source for ranking the fruit borer most serious, for the direct set-up-a-light-trap recommendation against the seed borer, and for the pest list including the mealybugs and chafers.'}},
+ {url:'https://agris.fao.org/agris-search/search.do?recordID=TH2005001673', a:'Chanthaburi bagging trial (2001–2002)', t:'IPM for durian seed borer on export durian: bagging at 6 weeks after fruit set gave 0% infestation vs 5.44% in the control, verified by cutting open all 3,645 experimental fruits.', kind:'paper', n:{zh:'套袋数据的出处：坐果后 6 周套袋 0% 蛀果、对照 5.44%，全部 3,645 个试验果剖开验证。',en:'Source for the bagging figures: 0% vs 5.44%, all 3,645 fruits cut open and checked.'}},
+ {url:'https://calag.ucanr.edu/Archive/?article=ca.v070n01p32', a:'Trap saturation study (California Agriculture, 2016)', t:'Sticky traps saturate with navel orangeworm in a nonlinear fashion.', kind:'paper', n:{zh:'捕获效率随虫体与鳞片在胶面堆积而下降，每板 50 只以下即已非线性衰减。本软件把换板门槛定在低档的依据。',en:'Capture efficiency falls as bodies and scales accumulate on the glue, with the decline already nonlinear below 50 moths per trap. The basis for setting the replacement threshold at the low end.'}},
+ {url:'https://content.ces.ncsu.edu/insects-found-on-yellow-sticky-traps-in-the-greenhouse', a:'NC State Extension', t:'Insects found on yellow sticky traps in the greenhouse. Entomology Insect Note.', kind:'practice', n:{zh:'板上认虫的主要依据。明确记载白粉虱一沾胶就掉蜡粉、露出橙色本体，「几乎化掉」；也给出蚜虫腹管、真菌蚊 Y 形翅脉、寄生蜂肘状触角等特征。',en:'The main source for the card characters. States explicitly that whiteflies lose their bloom in the adhesive, show their true orange colour and "almost dissolve"; also gives aphid cornicles, the fungus gnat Y-vein, and parasitoid elbowed antennae.'}},
+ {url:'https://ipm.cahnr.uconn.edu/wp-content/uploads/sites/3216/2022/12/2019ticky-Card-PhotosIPM2-1-1.pdf', a:'Pundt — UConn Extension IPM', t:'Identifying some pest and beneficial insects on your sticky cards.', kind:'practice', n:{zh:'蚜虫腹管与产仔、10–20 倍放大镜、头戴放大镜扫全板、真菌蚊平放更有效。',en:'Aphid cornicles and nymphs, the 10–20× lens requirement, a head-worn visor for scanning a whole card, and horizontal placement for fungus gnats.'}},
+ {url:'https://extension.okstate.edu/fact-sheets/ipm-scouting-and-monitoring-for-pests-in-commercial-greenhouses', a:'Oklahoma State Extension; UF/IFAS greenhouse handbook', t:'IPM scouting and monitoring in commercial greenhouses; vegetable insect identification.', kind:'practice', n:{zh:'板上特征的第二来源，并给出固定位置、编号、每周（或每三天）计数的做法。',en:'A second source for the card characters, plus the practice of fixed numbered positions counted weekly, or every three days.'}},
+ {a:'e-GRO / UConn (2023)', t:'A sticky subject: yellow sticky cards. e-GRO Alert vol. 12 no. 32, August 2023.', kind:'practice', n:{zh:'每周换板；黏板只抓有翅成虫，若虫、螨、介壳虫仍须上树检查。',en:'Change cards weekly; cards trap only winged adults, so nymphs, mites and scale still require plant inspection.'}},
+ {url:'https://ipm.ucanr.edu/agriculture/floriculture-and-ornamental-nurseries/monitoring-with-sticky-traps/', a:'UC IPM — Monitoring with sticky traps', t:'Floriculture and Ornamental Nurseries, Pest Management Guidelines.', kind:'practice', n:{zh:'基础监测量：每 10,000 平方英尺（约 900 m²）至少一张；粉虱敏感作物加密到每 1,000 平方英尺（约 90 m²）一张。每个管理单元至少要有一张。',en:'Baseline monitoring: at least one trap per 10,000 sq ft (about 900 m²), tightened to one per 1,000 sq ft (about 90 m²) on whitefly-susceptible crops. Every management unit needs at least one.'}},
+ {url:'https://international-pest-control.com/wordpress/monitoring-and-trapping-with-sticky-traps-whats-new/', a:'Sampson — Monitoring and trapping with sticky traps', t:'International Pest Control, review of current trap deployment practice.', kind:'practice', n:{zh:'常规做法：垂直挂在冠层稍上方，每 200 m² 一张（约每英亩 20 张），随作物长高上移。诱杀：热点每 2 m² 一张；Lu 等（2012）在温室茄子上每 5 m² 一张即显著压低烟粉虱。',en:'Standard practice: vertical, just above the canopy, about one trap per 200 m² (roughly 20 per acre), raised as the crop grows. Mass trapping: one per 2 m² in hotspots; Lu et al. (2012) achieved a significant Bemisia reduction at one per 5 m² in glasshouse aubergine.'}},
+ {a:'Penang mango thrips monitoring study', t:'Yellow sticky trap estimates of thrips populations in a Malaysian mango orchard, dry and wet seasons 2008–2009.', kind:'paper', n:{zh:'黄板计数与花穗上的实际蓟马数量相关，捕获量随离园距离下降。马来西亚果园的本地验证。',en:'Yellow-trap counts correlated with actual thrips numbers on mango panicles, and catch fell with distance from the orchard. A Malaysian orchard validation.'}},
+ {url:'https://www.umass.edu/agriculture-food-environment/greenhouse-floriculture/fact-sheets/fungus-gnats-shore-flies', a:'UMass Extension; Clemson Land-Grant Press', t:'Fungus gnats and shore flies — greenhouse fact sheets; IPM strategies for fungus gnats in ornamental propagation.', kind:'practice', n:{zh:'放法一致：黄板平放在基质表面或略高处，每 1,000 平方英尺 1–4 张，每周查。颜色一项转述康奈尔的结论：红板捕获量高于黄板。',en:'Consistent on placement: lay yellow cards flat on or just above the media, 1–4 per 1,000 sq ft, checked weekly. On colour they relay the Cornell result that red cards out-caught yellow.'}},
+ {a:'Conflicting reports on red vs yellow for fungus gnats', t:'Cornell (relayed by UMass) reports red out-catching yellow; a result attributed to Ohio State reports yellow beating blue, white, green and red.', kind:'note', n:{zh:'两边都只见到推广机构的转述，未见原始试验，方向相反。本软件按未定处理，默认仍用黄板——它买得到，且对其他害虫通用。',en:'Both reach me only as extension summaries, never the primary trials, and they point opposite ways. Treated as unsettled here; yellow remains the default because it is available and works on the other pests too.'}},
+ {a:'AQIS durian import risk analysis', t:'Final import risk analysis on the importation of fresh durian fruit.', kind:'official', n:{zh:'榴莲木虱 Allocarsidara malayensis 危害叶片不危害果实；Scirtothrips dorsalis 是榴莲花期害虫；果实蝇 Bactrocera 属的甲基丁香油为雄性专一引诱剂。',en:'Durian psyllid Allocarsidara malayensis attacks foliage not fruit; Scirtothrips dorsalis is a durian flower pest; methyl eugenol is a male-specific lure for Bactrocera fruit flies.'}}
+];
+
+function renderRefs(){
+  var el = document.getElementById('v-refs');
+  var h = '<div class="card sharecard"><h3>'+(LANG==='zh'?'分享本软件':'Share this app')+'</h3>'
+    + '<div class="sharerow"><div class="qrbox" aria-hidden="true">'
+    + '<svg viewBox="-2 -2 33.5 33.5" shape-rendering="crispEdges"><path d="M0 0h7v1h-7zM8 0h2v1h-2zM13 0h1v1h-1zM16 0h6v1h-6zM23 0h1v1h-1zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h4v1h-4zM13 1h1v1h-1zM16 1h1v1h-1zM18 1h1v1h-1zM22 1h2v1h-2zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM10 2h1v1h-1zM15 2h1v1h-1zM17 2h1v1h-1zM19 2h2v1h-2zM24 2h1v1h-1zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM11 3h2v1h-2zM14 3h3v1h-3zM20 3h1v1h-1zM22 3h3v1h-3zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h6v1h-6zM17 4h1v1h-1zM20 4h1v1h-1zM22 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM10 5h4v1h-4zM18 5h3v1h-3zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM8 7h1v1h-1zM10 7h1v1h-1zM17 7h2v1h-2zM20 7h1v1h-1zM22 7h3v1h-3zM0 8h1v1h-1zM2 8h2v1h-2zM5 8h3v1h-3zM11 8h2v1h-2zM14 8h1v1h-1zM16 8h4v1h-4zM21 8h1v1h-1zM26 8h1v1h-1zM29 8h1v1h-1zM31 8h2v1h-2zM1 9h1v1h-1zM3 9h2v1h-2zM7 9h2v1h-2zM10 9h2v1h-2zM14 9h1v1h-1zM16 9h1v1h-1zM18 9h3v1h-3zM22 9h2v1h-2zM26 9h2v1h-2zM29 9h2v1h-2zM32 9h1v1h-1zM0 10h3v1h-3zM4 10h6v1h-6zM14 10h1v1h-1zM17 10h1v1h-1zM23 10h1v1h-1zM27 10h3v1h-3zM31 10h2v1h-2zM4 11h2v1h-2zM9 11h1v1h-1zM11 11h1v1h-1zM13 11h3v1h-3zM18 11h1v1h-1zM20 11h1v1h-1zM23 11h2v1h-2zM27 11h1v1h-1zM29 11h1v1h-1zM0 12h1v1h-1zM2 12h3v1h-3zM6 12h1v1h-1zM9 12h1v1h-1zM11 12h1v1h-1zM18 12h1v1h-1zM22 12h2v1h-2zM25 12h1v1h-1zM27 12h3v1h-3zM31 12h1v1h-1zM0 13h1v1h-1zM3 13h2v1h-2zM8 13h2v1h-2zM11 13h1v1h-1zM13 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM21 13h1v1h-1zM24 13h1v1h-1zM27 13h1v1h-1zM29 13h1v1h-1zM31 13h1v1h-1zM0 14h1v1h-1zM4 14h1v1h-1zM6 14h3v1h-3zM11 14h3v1h-3zM15 14h2v1h-2zM18 14h1v1h-1zM22 14h1v1h-1zM24 14h1v1h-1zM26 14h2v1h-2zM30 14h1v1h-1zM4 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1zM16 15h1v1h-1zM18 15h9v1h-9zM28 15h1v1h-1zM30 15h1v1h-1zM1 16h3v1h-3zM6 16h3v1h-3zM11 16h1v1h-1zM14 16h2v1h-2zM18 16h2v1h-2zM21 16h3v1h-3zM25 16h2v1h-2zM28 16h3v1h-3zM1 17h2v1h-2zM4 17h2v1h-2zM11 17h1v1h-1zM13 17h1v1h-1zM15 17h3v1h-3zM20 17h1v1h-1zM23 17h2v1h-2zM26 17h1v1h-1zM28 17h2v1h-2zM32 17h1v1h-1zM0 18h1v1h-1zM2 18h3v1h-3zM6 18h1v1h-1zM9 18h1v1h-1zM13 18h1v1h-1zM15 18h3v1h-3zM20 18h3v1h-3zM25 18h4v1h-4zM30 18h2v1h-2zM4 19h1v1h-1zM12 19h5v1h-5zM19 19h2v1h-2zM22 19h2v1h-2zM28 19h1v1h-1zM32 19h1v1h-1zM1 20h1v1h-1zM4 20h6v1h-6zM18 20h5v1h-5zM29 20h4v1h-4zM0 21h6v1h-6zM7 21h9v1h-9zM18 21h1v1h-1zM21 21h1v1h-1zM23 21h1v1h-1zM25 21h3v1h-3zM29 21h1v1h-1zM32 21h1v1h-1zM3 22h1v1h-1zM6 22h4v1h-4zM11 22h3v1h-3zM16 22h3v1h-3zM21 22h4v1h-4zM26 22h7v1h-7zM1 23h3v1h-3zM5 23h1v1h-1zM10 23h1v1h-1zM16 23h1v1h-1zM18 23h2v1h-2zM24 23h1v1h-1zM26 23h2v1h-2zM29 23h1v1h-1zM31 23h1v1h-1zM0 24h1v1h-1zM2 24h1v1h-1zM4 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM14 24h2v1h-2zM17 24h1v1h-1zM20 24h1v1h-1zM22 24h1v1h-1zM24 24h5v1h-5zM8 25h4v1h-4zM15 25h3v1h-3zM19 25h1v1h-1zM21 25h1v1h-1zM23 25h2v1h-2zM28 25h2v1h-2zM0 26h7v1h-7zM8 26h1v1h-1zM10 26h1v1h-1zM13 26h2v1h-2zM16 26h1v1h-1zM19 26h3v1h-3zM23 26h2v1h-2zM26 26h1v1h-1zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM8 27h2v1h-2zM13 27h1v1h-1zM16 27h1v1h-1zM19 27h6v1h-6zM28 27h3v1h-3zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM9 28h1v1h-1zM11 28h2v1h-2zM14 28h2v1h-2zM17 28h1v1h-1zM19 28h2v1h-2zM23 28h6v1h-6zM30 28h3v1h-3zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h4v1h-4zM17 29h6v1h-6zM27 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h1v1h-1zM10 30h3v1h-3zM17 30h1v1h-1zM19 30h1v1h-1zM22 30h6v1h-6zM29 30h2v1h-2zM0 31h1v1h-1zM6 31h1v1h-1zM9 31h5v1h-5zM15 31h5v1h-5zM22 31h3v1h-3zM26 31h3v1h-3zM32 31h1v1h-1zM0 32h7v1h-7zM8 32h2v1h-2zM11 32h1v1h-1zM13 32h6v1h-6zM21 32h1v1h-1zM23 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM30 32h1v1h-1z" fill="#111"/></svg>'
+    + '</div><div class="sharetxt">'
+    + '<p class="note">'+(LANG==='zh'
+      ? '扫码打开在线版。第一次打开后就能离线使用；在浏览器菜单选「安装」或「加到主屏幕」，它会像普通软件一样出现在桌面上。'
+      : 'Scan to open the online copy. After the first load it works offline; choose Install or Add to Home Screen in the browser menu and it sits on the home screen like any other app.')+'</p>'
+    + '<p class="note sub" style="word-break:break-all">stanleywoosweeleong.github.io/insecteye</p>'
+    + '</div></div></div>'
+    + '<p class="lede">'+(LANG==='zh'
+    ? '本软件里的每一条内容都能追到下面某一项，追不到的没有写进来。<b>蓝色的条目可以点开原文</b>；其余的没有稳定链接，只能按标题检索。另外注意：下面既有同行评审的论文，也有推广机构的实务指引——后者通常不标年份，可靠性也不同，正文里的证据等级已经区分过。'
+    : 'Every line in this app traces to one of the entries below; what could not be traced was left out. <b>Entries in blue open the source</b>; the rest have no stable link and must be searched by title. Note also that the list mixes peer-reviewed papers with extension practice guidance — the latter often carries no year and is not the same kind of evidence, which is what the tiers in the body text distinguish.')+'</p><div class="card">';
+  for(var i=0;i<REFS.length;i++){
+    var r = REFS[i];
+    var head = r.url
+      ? '<a href="'+r.url+'" target="_blank" rel="noopener"><b>'+r.a+'</b></a>'
+      : '<b>'+r.a+'</b>';
+    var kd = REF_KIND[r.kind] || REF_KIND.paper;
+    var locatable = r.url || /\d{4}/.test(r.a+r.t);
+    h += '<div class="ref"><span class="refkind rk-'+r.kind+'">'+t(kd)+'</span>'
+       + (locatable ? '' : '<span class="refkind rk-nofix">'+(LANG==='zh'?'无年份／无链接':'no year or link')+'</span>')
+       + '<br>'+head+' — '+r.t+'<br>'+t(r.n)+'</div>';
+  }
+  h += '</div><div class="card"><h3>'+(LANG==='zh'?'关于证据等级':'On the evidence tiers')+'</h3>'
+    + '<p class="note">'+(LANG==='zh'
+      ? '<b>实测</b>：电生理或光谱测量，直接测的是受体本身。<b>田间试验</b>：田间或选择试验，测的是昆虫的行为——同一种虫在不同作物、不同季节可能给出不同结果。<b>机理推断</b>：从已发表机制推出来、但对这一类群没有直接测过，这一级最应该在自己园里验证。'
+      : '<b>Measured</b>: electrophysiology or spectral measurement, taken from the receptor itself. <b>Field trial</b>: field or choice tests, measuring behaviour — the same species can give different results on a different crop or in a different season. <b>Mechanism</b>: inferred from a published mechanism but not directly measured for that group, and the tier most worth verifying in your own block.')
+    +'</p></div>';
+  el.innerHTML = h;
+}
+
+/* =========================================================
+   SHELL
+   ========================================================= */
+var VIEWS = ['spectrum','mech','species','cardid','advisor','durian','veg','refs'];
+var curView = 'spectrum';
+
+function renderNav(){
+  var n = document.getElementById('nav'), h='';
+  for(var i=0;i<VIEWS.length;i++){
+    h += '<button data-v="'+VIEWS[i]+'"'+(curView===VIEWS[i]?' class="on"':'')+'>'+t(T.nav[VIEWS[i]])+'</button>';
+  }
+  n.innerHTML = h;
+  n.querySelectorAll('[data-v]').forEach(function(b){
+    b.addEventListener('click', function(){ show(b.getAttribute('data-v')); });
+  });
+}
+function show(v){
+  curView = v;
+  for(var i=0;i<VIEWS.length;i++){
+    document.getElementById('v-'+VIEWS[i]).classList.toggle('on', VIEWS[i]===v);
+  }
+  renderNav();
+  window.scrollTo(0,0);
+}
+function renderAll(){
+  document.documentElement.lang = LANG;
+  document.getElementById('bTitle').textContent = LANG==='zh' ? '虫眼光谱' : 'InsectEye';
+  document.getElementById('bSub').textContent = LANG==='zh' ? '昆虫视觉与趋光实验室' : 'Entomology vision & phototaxis lab';
+  document.getElementById('langbtn').textContent = LANG==='zh' ? '中文' : 'EN';
+  document.documentElement.lang = LANG==='zh' ? 'zh' : 'en';
+  applyFs();
+  document.getElementById('foot').innerHTML = (LANG==='zh'
+    ? '这里的数字是起点，按你园里的捕获量调整。<br>'+CACHE_VERSION
+    : 'The figures here are starting points — adjust them to what your own catch shows.<br>'+CACHE_VERSION);
+  renderNav();
+  renderSpectrum(); renderMech(); renderSpecies(); renderCoverage(); renderAdvisor();
+  renderDurian(); renderVeg(); renderRefs();
+  show(curView);
+}
+
+document.getElementById('fsbtn').addEventListener('click', function(){
+  FS = FS_STEPS[(FS_STEPS.indexOf(FS)+1) % FS_STEPS.length];
+  try{ localStorage.setItem('insecteye.fs', FS); }catch(e){}
+  applyFs();
+});
+
+document.getElementById('langbtn').addEventListener('click', function(){
+  LANG = (LANG==='zh') ? 'en' : 'zh';
+  try{ localStorage.setItem('insecteye.lang', LANG); }catch(e){}
+  renderAll();
+});
+
+try{
+  var saved = localStorage.getItem('insecteye.lang');
+  if(saved === 'en' || saved === 'zh') LANG = saved;
+  var fsSaved = localStorage.getItem('insecteye.fs');
+  if(FS_STEPS.indexOf(fsSaved) > -1) FS = fsSaved;
+}catch(e){}
+
+renderAll();
+
+/* PWA: register only over http(s) — file:// testing stays untouched. The
+   version in the query string means a CACHE_VERSION bump re-registers the
+   worker and rolls the cache without ever editing sw.js. */
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js?v='+CACHE_VERSION).catch(function(){});
+  });
+}
+
+</script>
+</body>
+</html>

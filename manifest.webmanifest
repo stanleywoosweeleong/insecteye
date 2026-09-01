@@ -1,0 +1,17 @@
+{
+  "name": "虫眼光谱 InsectEye · 昆虫视觉与趋光实验室",
+  "short_name": "虫眼光谱",
+  "description": "昆虫视觉与趋光实验室 · Entomology vision & phototaxis lab",
+  "lang": "zh",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1119",
+  "theme_color": "#0e1119",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
