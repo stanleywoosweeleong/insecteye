@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e1119">
+<script>
+/* Theme is set before first paint: the saved choice, else the system setting. */
+(function(){
+  var th = null;
+  try{ th = localStorage.getItem('insecteye.theme'); }catch(e){}
+  if(th !== 'light' && th !== 'dark')
+    th = (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', th);
+})();
+</script>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -30,6 +40,47 @@
   --warn:#f7cf52;
   --bad:#f0716a;
   --radius:12px;
+  --hdr:rgba(13,16,23,.96);
+  --on-yel:#0d1017;
+  --opt-on-bg:#2a2410;--opt-on-fg:#fff;
+  --cau-bg:#2a2410;--cau-line:#7a6427;--cau-fg:#f8e9c2;--cau-b:#f9d97a;
+  --ok-fg:#8bf0c1;--ok-line:#3a8564;--ok-bg:#12291f;
+  --fld-fg:#a3c4ff;--fld-line:#3f5888;--fld-bg:#151c2c;
+  --mch-fg:#e2c9ff;--mch-line:#674592;--mch-bg:#1e1729;
+  --bad-fg:#ffb0a8;--bad-line:#96443c;--bad-bg:#2c1614;
+  --link-line:rgba(111,163,255,.4);
+  --shadow:rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+/* Light ("bright") theme: same structure, paper background, darker accents
+   so every accent still reads as text on white. */
+:root[data-theme="light"]{
+  --ink:#f5f3ed;
+  --ink2:#ffffff;
+  --ink3:#ebe8df;
+  --line:#d3cec2;
+  --bone:#171b24;
+  --mute:#4f5768;
+  --uv:#7340cc;
+  --blu:#2357c4;
+  --grn:#13804f;
+  --yel:#f2c230;
+  --org:#c9621a;
+  --red:#c2392f;
+  --ok:#13804f;
+  --warn:#a87b00;
+  --bad:#c2392f;
+  --hdr:rgba(245,243,237,.96);
+  --on-yel:#171b24;
+  --opt-on-bg:#fdf3cf;--opt-on-fg:#171b24;
+  --cau-bg:#fdf6dc;--cau-line:#d9b649;--cau-fg:#4a3b0c;--cau-b:#7a5a00;
+  --ok-fg:#0f6b41;--ok-line:#7cc4a0;--ok-bg:#e5f5ec;
+  --fld-fg:#1f4fa8;--fld-line:#94afe0;--fld-bg:#e8effc;
+  --mch-fg:#5e2fb0;--mch-line:#bba0e6;--mch-bg:#f1eafc;
+  --bad-fg:#a32d24;--bad-line:#e2a09a;--bad-bg:#fcebe9;
+  --link-line:rgba(35,87,196,.35);
+  --shadow:rgba(23,27,36,.18);
+  color-scheme:light;
 }
 html{font-size:18px;-webkit-text-size-adjust:100%}
 html.fs-l{font-size:20.5px}
@@ -52,7 +103,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border
 /* ---------- shell ---------- */
 header{
   position:sticky;top:0;z-index:40;
-  background:rgba(13,16,23,.96);backdrop-filter:blur(10px);
+  background:var(--hdr);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
   padding:calc(12px + env(safe-area-inset-top)) 14px 0;
 }
@@ -60,6 +111,9 @@ header{
 .brandrow h1{font-size:1.55rem;letter-spacing:.5px;line-height:1.2;min-width:0}
 header #bSub{margin:3px 0 0;font-size:0.9rem;color:var(--mute);font-weight:500;line-height:1.3}
 .ctrls{display:flex;gap:6px;flex:none;padding-bottom:2px}
+.ctrls #themebtn{display:flex;align-items:center;justify-content:center;padding:6px 11px}
+.ctrls #themebtn svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
 .ctrls #fsbtn{display:flex;align-items:baseline;gap:3px;padding:6px 15px 7px;line-height:1}
 .ctrls #fsbtn .fsref{font-size:.72em;opacity:.5;font-weight:700}
 .ctrls #fsbtn .fscur{font-weight:700;transition:font-size .12s ease}
@@ -84,7 +138,7 @@ nav button{
   overflow-wrap:normal;word-break:keep-all;hyphens:none;
 }
 nav button.on{
-  background:var(--yel);border-color:var(--yel);color:#0d1017;font-weight:700;
+  background:var(--yel);border-color:var(--yel);color:var(--on-yel);font-weight:700;
 }
 @media(min-width:620px){
   nav button{min-height:3rem;font-size:1rem}
@@ -107,11 +161,11 @@ ul.tight li{margin-bottom:8px}
 
 /* evidence badges */
 .ev{display:inline-block;font-size:0.88rem;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid;vertical-align:middle;white-space:nowrap;line-height:1.6}
-.ev-measured{color:#8bf0c1;border-color:#3a8564;background:#12291f}
-.ev-field{color:#a3c4ff;border-color:#3f5888;background:#151c2c}
-.ev-mech{color:#e2c9ff;border-color:#674592;background:#1e1729}
+.ev-measured{color:var(--ok-fg);border-color:var(--ok-line);background:var(--ok-bg)}
+.ev-field{color:var(--fld-fg);border-color:var(--fld-line);background:var(--fld-bg)}
+.ev-mech{color:var(--mch-fg);border-color:var(--mch-line);background:var(--mch-bg)}
 .ev-schem{color:var(--mute);border-color:var(--line);background:var(--ink3)}
-.ev-wrong{color:#ffb0a8;border-color:#96443c;background:#2c1614}
+.ev-wrong{color:var(--bad-fg);border-color:var(--bad-line);background:var(--bad-bg)}
 
 /* ---------- spectrum scrubber ---------- */
 .scrub{background:var(--ink2);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
@@ -153,9 +207,9 @@ input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
 .covsvg{display:block;width:100%;height:60px}
 .covpc{padding:6px 0;font-size:0.92rem;font-weight:700;color:var(--mute)}
 .covcell.on .covpc{color:var(--ink);background:var(--bone)}
-.card.cov-ok{border-color:#3a8564}
-.card.cov-warn{border-color:#7a6427}
-.card.cov-bad{border-color:#96443c}
+.card.cov-ok{border-color:var(--ok-line)}
+.card.cov-warn{border-color:var(--cau-line)}
+.card.cov-bad{border-color:var(--bad-line)}
 .mgroup{margin-top:14px}
 .mgroup:first-child{margin-top:4px}
 .mghead{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
@@ -178,7 +232,7 @@ input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
 /* ---------- species ---------- */
 .filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
 .chip{border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:0.88rem;font-weight:600;color:var(--mute);background:var(--ink2)}
-.chip.on{color:#0d1017;background:var(--yel);border-color:var(--yel);font-weight:700}
+.chip.on{color:var(--on-yel);background:var(--yel);border-color:var(--yel);font-weight:700}
 .sp{background:var(--ink2);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:11px;overflow:hidden}
 .sp>button{width:100%;text-align:left;padding:14px;display:flex;align-items:center;gap:11px}
 .sp .swatch{flex:none;width:9px;height:38px;border-radius:3px}
@@ -195,30 +249,39 @@ input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
 /* ---------- advisor ---------- */
 .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
 .opt{border:1px solid var(--line);background:var(--ink2);border-radius:10px;padding:13px;text-align:left;font-size:0.94rem;font-weight:500}
-.opt.on{border-color:var(--yel);background:#2a2410;color:#fff;font-weight:700}
+.opt.on{border-color:var(--yel);background:var(--opt-on-bg);color:var(--opt-on-fg);font-weight:700}
 .opt small{display:block;color:var(--mute);font-size:0.88rem;font-weight:450;margin-top:3px}
 .rx{border-left:4px solid var(--yel);padding-left:14px;margin-top:18px}
 .rx h3{font-size:1.15rem}
-.caution{background:#2a2410;border:1px solid #7a6427;border-radius:10px;padding:13px;font-size:0.92rem;margin-top:12px;color:#f8e9c2}
-.caution b{color:#f9d97a;font-weight:700}
+.caution{background:var(--cau-bg);border:1px solid var(--cau-line);border-radius:10px;padding:13px;font-size:0.92rem;margin-top:12px;color:var(--cau-fg)}
+.caution b{color:var(--cau-b);font-weight:700}
 
 /* ---------- refs ---------- */
 .ref{font-size:0.88rem;padding:11px 0;border-bottom:1px solid var(--line);color:var(--mute)}
 .ref b{color:var(--bone);font-weight:700}
-.ref a{color:var(--blu);text-decoration:none;border-bottom:1px solid rgba(111,163,255,.4)}
+.ref a{color:var(--blu);text-decoration:none;border-bottom:1px solid var(--link-line)}
 .sharecard{margin-bottom:14px}
 .sharerow{display:flex;gap:14px;align-items:center}
 .qrbox{flex:none;width:160px;height:160px;background:#fff;border-radius:10px;padding:12px}
 .qrbox img{display:block;width:100%;height:100%;image-rendering:pixelated}
 .sharetxt{min-width:0}
 @media(max-width:359px){ .sharerow{flex-direction:column;align-items:flex-start} }
+/* narrow phones: three header buttons plus the title must share one row */
+@media(max-width:374px){
+  .brandrow{gap:6px}
+  .brandrow h1{font-size:1.3rem}
+  .ctrls{gap:4px}
+  .ctrls button{padding:7px 11px}
+  .ctrls #fsbtn{padding:6px 10px 7px}
+  .ctrls #themebtn{padding:6px 8px}
+}
 .refkind{display:inline-block;font-size:0.78rem;font-weight:700;padding:1px 8px;border-radius:999px;
   border:1px solid var(--line);margin:0 6px 4px 0}
-.rk-paper{color:#8bf0c1;border-color:#3a8564}
-.rk-preprint{color:#e2c9ff;border-color:#674592}
-.rk-practice{color:#a3c4ff;border-color:#3f5888}
+.rk-paper{color:var(--ok-fg);border-color:var(--ok-line)}
+.rk-preprint{color:var(--mch-fg);border-color:var(--mch-line)}
+.rk-practice{color:var(--fld-fg);border-color:var(--fld-line)}
 .rk-official{color:var(--mute)}
-.rk-note{color:#f9d97a;border-color:#7a6427}
+.rk-note{color:var(--cau-b);border-color:var(--cau-line)}
 .rk-nofix{color:var(--mute);background:var(--ink3)}
 footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 44px;line-height:1.75}
 
@@ -229,7 +292,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
   gap:14px;padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
 }
 #langPick.on{display:flex}
-#langPick img{width:84px;height:84px;border-radius:22px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+#langPick img{width:84px;height:84px;border-radius:22px;box-shadow:0 6px 18px var(--shadow)}
 #langPick .lp-title{font-family:Georgia,"Songti SC","Noto Serif CJK SC",serif;font-size:20px;font-weight:700;
   color:var(--bone);text-align:center;line-height:1.4;margin-bottom:6px}
 #langPick button{
@@ -250,6 +313,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
     <h1 id="bTitle">虫眼光谱</h1>
     <div class="ctrls">
       <button id="fsbtn" aria-label="Text size"><span class="fsref">A</span><span class="fscur">A</span></button>
+      <button id="themebtn" aria-label="Theme"></button>
       <button id="langbtn" aria-label="Language">中文</button>
     </div>
   </div>
@@ -281,7 +345,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.2.0-20261113';
+var CACHE_VERSION = 'insecteye-v4.3.0-20261113';
 var LANG = 'zh';
 var LANGS = ['zh','en','ms'];
 /* Pick the string for the current language. Malay falls back to English
@@ -292,6 +356,24 @@ function L(zh, en, ms){
   return en;
 }
 var FS = 'm';
+function isLight(){ return document.documentElement.getAttribute('data-theme') === 'light'; }
+var THEME_ICON = {
+  /* shows what tapping switches TO: a sun in dark mode, a moon in light mode */
+  dark:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.3 4.3l1.6 1.6M18.1 18.1l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.3 19.7l1.6-1.6M18.1 5.9l1.6-1.6"/></svg>',
+  light:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z"/></svg>'
+};
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme', th);
+  var m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', th === 'light' ? '#f5f3ed' : '#0e1119');
+  var b = document.getElementById('themebtn');
+  if(b){
+    b.innerHTML = THEME_ICON[th];
+    b.setAttribute('aria-label', th === 'light'
+      ? L('切换到深色模式', 'Switch to dark mode', 'Tukar ke mod gelap')
+      : L('切换到浅色模式', 'Switch to light mode', 'Tukar ke mod cerah'));
+  }
+}
 var FS_STEPS = ['m','l','xl'];
 var FS_LABEL = {
   m:{zh:'字号 中',en:'Text M', ms:'Teks M'},
@@ -389,6 +471,13 @@ function nmToCss(nm){
 /* Same hue, lifted for use as text on the dark background. */
 function nmToText(nm){
   var c = wlRGB(nm), m = Math.max(c[0],c[1],c[2]);
+  if(isLight()){
+    /* On a light background bright hues (yellow, green) vanish: scale the
+       colour down until its luminance is dark enough to read as text. */
+    var lum = (0.2126*c[0] + 0.7152*c[1] + 0.0722*c[2]) / 255;
+    var d = lum > 0.38 ? 0.38/lum : 1;
+    return 'rgb('+Math.round(c[0]*d)+','+Math.round(c[1]*d)+','+Math.round(c[2]*d)+')';
+  }
   var k = m < 170 ? 170/Math.max(m,1) : 1;
   return 'rgb('+Math.min(255,Math.round(c[0]*k))+','+Math.min(255,Math.round(c[1]*k))+','+Math.min(255,Math.round(c[2]*k))+')';
 }
@@ -782,9 +871,9 @@ function buildCurves(){
     h += '<path d="'+fill+'" fill="'+r.color+'" opacity="0.13"/>'
        + '<path d="'+line+'" fill="none" stroke="'+r.color+'" stroke-width="1.8" stroke-dasharray="3 3.5" opacity="0.9"/>';
   }
-  h += '<line id="curveCursor" y1="0" y2="'+CURVE_H+'" stroke="#f5f3ed" stroke-width="1.2" opacity="0.85"/>';
+  h += '<line id="curveCursor" y1="0" y2="'+CURVE_H+'" style="stroke:var(--bone)" stroke-width="1.2" opacity="0.85"/>';
   for(var j=0;j<RECEPTORS.length;j++){
-    h += '<circle id="curveDot'+j+'" r="3.6" fill="'+RECEPTORS[j].color+'" stroke="#0d1017" stroke-width="1.2"/>';
+    h += '<circle id="curveDot'+j+'" r="3.6" fill="'+RECEPTORS[j].color+'" style="stroke:var(--ink)" stroke-width="1.2"/>';
   }
   svg.innerHTML = h;
 }
@@ -1604,6 +1693,7 @@ function renderAll(){
   document.documentElement.lang = L('zh', 'en', 'ms');
   document.title = document.getElementById('bTitle').textContent+' · '+document.getElementById('bSub').textContent;
   applyFs();
+  applyTheme(isLight() ? 'light' : 'dark');
   document.getElementById('foot').innerHTML = (L('这里的数字是起点，按你园里的捕获量调整。<br>'+CACHE_VERSION,
       'The figures here are starting points — adjust them to what your own catch shows.<br>'+CACHE_VERSION,
       'Angka di sini hanyalah titik permulaan — laraskan mengikut hasil tangkapan di kebun anda sendiri.<br>'+CACHE_VERSION));
@@ -1618,6 +1708,24 @@ document.getElementById('fsbtn').addEventListener('click', function(){
   try{ localStorage.setItem('insecteye.fs', FS); }catch(e){}
   applyFs();
 });
+
+document.getElementById('themebtn').addEventListener('click', function(){
+  var th = isLight() ? 'dark' : 'light';
+  try{ localStorage.setItem('insecteye.theme', th); }catch(e){}
+  applyTheme(th);
+  updateSpectrum();   /* wavelength-coloured text is computed per theme */
+});
+/* No saved choice yet: keep following the phone's light/dark setting. */
+if(window.matchMedia){
+  var mqLight = matchMedia('(prefers-color-scheme: light)');
+  var onSys = function(){
+    var saved = null;
+    try{ saved = localStorage.getItem('insecteye.theme'); }catch(e){}
+    if(saved !== 'light' && saved !== 'dark'){ applyTheme(mqLight.matches ? 'light' : 'dark'); updateSpectrum(); }
+  };
+  if(mqLight.addEventListener) mqLight.addEventListener('change', onSys);
+  else if(mqLight.addListener) mqLight.addListener(onSys);
+}
 
 document.getElementById('langbtn').addEventListener('click', function(){
   LANG = LANGS[(LANGS.indexOf(LANG)+1) % LANGS.length];
