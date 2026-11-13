@@ -222,6 +222,23 @@ input[type=range]{width:100%;margin:0;height:32px;accent-color:var(--yel)}
 .rk-nofix{color:var(--mute);background:var(--ink3)}
 footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 44px;line-height:1.75}
 
+/* ---------- first-launch language picker (onboarding) ---------- */
+#langPick{
+  position:fixed;inset:0;z-index:2000;background:var(--ink);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+}
+#langPick.on{display:flex}
+#langPick img{width:84px;height:84px;border-radius:22px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+#langPick .lp-title{font-family:Georgia,"Songti SC","Noto Serif CJK SC",serif;font-size:20px;font-weight:700;
+  color:var(--bone);text-align:center;line-height:1.4;margin-bottom:6px}
+#langPick button{
+  width:min(18rem,84vw);min-height:58px;border:2px solid var(--line);border-radius:16px;
+  background:var(--ink2);color:var(--bone);font-size:19px;font-weight:800;
+  transition:transform .15s,border-color .15s;
+}
+#langPick button:active{transform:scale(.97);border-color:var(--yel)}
+
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media(min-width:620px){ .kv b{flex-basis:9em} }
 </style>
@@ -253,9 +270,18 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <footer id="foot"></footer>
 
+<!-- first-launch language picker (onboarding) -->
+<div id="langPick" role="dialog" aria-label="中文 · English · Malay">
+  <img src="icon-192.png" alt="InsectEye">
+  <div class="lp-title">虫眼光谱<br>InsectEye</div>
+  <button onclick="pickLang('zh')">中文</button>
+  <button onclick="pickLang('en')">English</button>
+  <button onclick="pickLang('ms')">Malay</button>
+</div>
+
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.1.0-20261113';
+var CACHE_VERSION = 'insecteye-v4.2.0-20261113';
 var LANG = 'zh';
 var LANGS = ['zh','en','ms'];
 /* Pick the string for the current language. Malay falls back to English
@@ -1599,14 +1625,24 @@ document.getElementById('langbtn').addEventListener('click', function(){
   renderAll();
 });
 
+/* Onboarding: on first launch (no language saved yet) ask for one. */
+function pickLang(l){
+  LANG = l;
+  try{ localStorage.setItem('insecteye.lang', LANG); }catch(e){}
+  document.getElementById('langPick').classList.remove('on');
+  renderAll();
+}
+
+var langChosen = false;
 try{
   var saved = localStorage.getItem('insecteye.lang');
-  if(LANGS.indexOf(saved) > -1) LANG = saved;
+  if(LANGS.indexOf(saved) > -1){ LANG = saved; langChosen = true; }
   var fsSaved = localStorage.getItem('insecteye.fs');
   if(FS_STEPS.indexOf(fsSaved) > -1) FS = fsSaved;
 }catch(e){}
 
 renderAll();
+if(!langChosen) document.getElementById('langPick').classList.add('on');
 
 /* PWA: register only over http(s) — file:// testing stays untouched. The
    version in the query string means a CACHE_VERSION bump re-registers the
