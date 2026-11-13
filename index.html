@@ -335,7 +335,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 <footer id="foot"></footer>
 
 <!-- first-launch language picker (onboarding) -->
-<div id="langPick" role="dialog" aria-label="中文 · English · Malay">
+<div id="langPick" role="dialog" aria-modal="true" aria-label="中文 · English · Malay">
   <img src="icon-192.png" alt="InsectEye">
   <div class="lp-title">虫眼光谱<br>InsectEye</div>
   <button onclick="pickLang('zh')">中文</button>
@@ -345,7 +345,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.3.0-20261113';
+var CACHE_VERSION = 'insecteye-v4.3.1-20261113';
 var LANG = 'zh';
 var LANGS = ['zh','en','ms'];
 /* Pick the string for the current language. Malay falls back to English
@@ -531,6 +531,13 @@ var MODE_NOTE = {
   both:  {zh:'这个波段在黏板和诱虫灯两条路径上都有记录。',
           en:'Documented on both routes, card and lamp.', ms:'Didokumenkan pada kedua-dua laluan, papan dan lampu.'}
 };
+
+/* Several views rebuild their markup on a tap. Put focus back on the
+   equivalent control so keyboard and screen-reader users keep their place. */
+function refocus(attr, val){
+  var el = document.querySelector('['+attr+'="'+val+'"]');
+  if(el) el.focus({preventScroll:true});
+}
 
 function chevron(){
   return '<i class="chev" aria-hidden="true"><svg viewBox="0 0 12 8">'
@@ -1020,13 +1027,16 @@ function renderSpecies(){
     +'</p><div class="filters">'+f+'</div>'+list;
 
   el.querySelectorAll('[data-g]').forEach(function(b){
-    b.addEventListener('click', function(){ curGuild = b.getAttribute('data-g'); renderSpecies(); });
+    b.addEventListener('click', function(){ curGuild = b.getAttribute('data-g'); renderSpecies(); refocus('data-g', curGuild); });
   });
   el.querySelectorAll('[data-toggle]').forEach(function(b){
     b.addEventListener('click', function(){
+      /* toggle in place: rebuilding the list would drop focus */
       var id = b.getAttribute('data-toggle');
       openSp[id] = !openSp[id];
-      renderSpecies();
+      b.classList.toggle('open', openSp[id]);
+      b.parentNode.classList.toggle('open', openSp[id]);
+      b.setAttribute('aria-expanded', openSp[id] ? 'true' : 'false');
     });
   });
 }
@@ -1311,7 +1321,36 @@ function renderAdvisor(){
         + '<p class="note sub">'+(L('这是监测密度：够你知道虫来了没有、什么时候来。全园最少也要有一张，并在园边、迎风面和往年的热点多挂一张。',
       'That is monitoring density — enough to tell you whether they have arrived and when. Keep at least one card per management unit, and add one at the block edge, on the windward side, and at last season\'s hotspots.',
       'Itu kepadatan pemantauan — cukup untuk memberitahu anda sama ada serangga sudah tiba dan bila. Simpan sekurang-kurangnya satu perangkap melekit bagi setiap unit pengurusan, dan tambah satu di pinggir blok, di sebelah arah angin datang, dan di titik panas musim lepas.'))+'</p></div>');
-    if(advG==='suppress'){
+    if(advG==='suppress' && isLure){
+      body += '<div class="rx" style="border-left-color:var(--org)"><h3>'+L('压果实蝇：诱捕器不是主力', 'Suppressing fruit flies: the traps are not the lead', 'Mengurangkan lalat buah: perangkap bukan kaedah utama')+' '+badge('field')+'</h3>'
+        + '<p class="note">'+L('<b>不要改用黏板的诱杀密度</b>——颜色不是果实蝇的主线索。甲基丁香油只诱雄虫，诱捕器挂得再多，产卵的雌虫还在。压虫口靠的是蛋白饵剂（它才碰得到雌虫），加上套袋和清园落果；诱捕器用来掌握时机、确认效果。',
+      '<b>Do not switch to sticky-card density</b> — colour is not the main cue for fruit flies. Methyl eugenol takes males only, so adding more traps still leaves the egg-laying females. Suppression comes from protein bait, which reaches the females, together with bagging and removing fallen fruit; keep the traps to time and confirm that work.',
+      '<b>Jangan beralih kepada kepadatan perangkap melekit</b> — warna bukan isyarat utama bagi lalat buah. Metil eugenol hanya memikat jantan, jadi menambah perangkap masih meninggalkan betina yang bertelur. Pengurangan datang daripada umpan protein, yang sampai kepada betina, bersama pembungkusan buah dan pembuangan buah gugur; gunakan perangkap untuk menentukan masa dan mengesahkan hasil kerja itu.')+'</p></div>';
+    } else if(advG==='suppress' && isLamp){
+      body += '<div class="caution"><b>'+L('灯的代价', 'The cost of lamps', 'Kos lampu')+'</b><br>'
+        + L('灯也会抓非靶标；把灯的波长调离最佳点时，蛾没有多捕到，非靶标却明显增多。榴莲花期绝不要在花层开灯——夜行昆虫也是它的传粉者。',
+      'A lamp catches non-targets too, and tuning a lamp off its optimum caught no extra moths but distinctly more non-targets. During durian bloom never light the flowering zone — night-flying insects are among its pollinators.',
+      'Lampu turut menangkap serangga bukan sasaran, dan menala lampu jauh daripada tahap optimumnya tidak menangkap rama-rama tambahan tetapi jelas menambah tangkapan bukan sasaran. Semasa durian berbunga, jangan sekali-kali menyalakan lampu di zon bunga — serangga malam juga antara pendebunganya.')
+        + ' '+badge('field')+'</div>'
+        + '<div class="rx" style="border-left-color:var(--org)"><h3>'+L('用灯压虫口：加灯不等于加效果', 'Suppressing with lamps: more lamps is not more effect', 'Mengurangkan dengan lampu: lebih banyak lampu tidak bermakna lebih berkesan')+' '+badge('mech')+'</h3>'
+        + '<p class="note">'+L('诱虫灯是短距离的：它压低的是自身周围一圈的虫压，不会把全园的虫拉过来。所以压虫口靠的是在虫源边界和要保护的片区多装几盏、按你看到有效的间距往外补——不是换更大的灯，也没有可引用的「每英亩几盏」。',
+      'A trap lamp is short-range: it lowers pressure in the ring around itself and does not pull insects in from across the block. So suppression means more lamps at the source boundary and around the patches you are protecting, added at the spacing you see working — not a bigger lamp, and there is no citable lamps-per-acre figure.',
+      'Lampu perangkap berjarak dekat: ia mengurangkan tekanan dalam lingkungan di sekelilingnya dan tidak menarik serangga dari seluruh blok. Jadi pengurangan bermaksud menambah lampu di sempadan sumber serangga dan di sekitar kawasan yang dilindungi, pada jarak yang anda lihat berkesan — bukan lampu yang lebih besar, dan tiada angka lampu setiap ekar yang boleh dirujuk.')+'</p>'
+        + (advT==='noctuid' ? '<p class="note sub">'+L('对蛀果蛾，灯只抓得到飞近的成虫；果实本身还是要靠套袋。',
+      'For fruit borers a lamp only takes the adults that fly near it; the fruit itself still needs bagging.',
+      'Bagi pengorek buah, lampu hanya menangkap rama-rama dewasa yang terbang berhampiran; buah itu sendiri masih perlu dibungkus.')+'</p>' : '')
+        + '</div>';
+    } else if(advG==='suppress' && (advT==='leafminer' || advT==='hopper')){
+      body += '<div class="caution"><b>'+L('不建议为这一类铺诱杀密度', 'No mass-trapping density for this group', 'Tiada kepadatan perangkap besar-besaran untuk kumpulan ini')+'</b><br>'
+        + (advT==='leafminer'
+          ? L('保持监测密度。潜叶蝇通常被寄生蜂压得很好，大发生多半是打药打掉天敌之后的反弹；铺满黄板会把寄生蜂一起黏走，反而火上浇油。用板来判断什么时候动手，同时保护寄生蜂。',
+      'Stay at monitoring density. Leafminers are usually held down by their parasitoid wasps, and outbreaks mostly follow sprays that removed them; saturating with yellow cards takes the parasitoids too and can make it worse. Use the cards to time action, and protect the parasitoids.',
+      'Kekalkan kepadatan pemantauan. Pengorek daun biasanya dikawal oleh tebuan parasitoidnya, dan ledakan kebanyakannya berlaku selepas semburan yang menghapuskan parasitoid itu; memenuhkan kawasan dengan papan kuning turut menangkap parasitoid dan boleh memburukkan keadaan. Gunakan papan untuk menentukan masa tindakan, dan lindungi parasitoid.')
+          : L('保持监测密度。对叶蝉、飞虱来说，用黏板铺满全园造成的天敌损失可能超过收益。用计数来决定其他防治手段的时机。',
+      'Stay at monitoring density. For leaf- and planthoppers the predator loss from saturating the block with cards can exceed the gain. Use the counts to time other control.',
+      'Kekalkan kepadatan pemantauan. Bagi bena, kehilangan pemangsa akibat memenuhkan blok dengan papan boleh melebihi faedahnya. Gunakan kiraan untuk menentukan masa kawalan lain.'))
+        + ' '+badge('field')+'</div>';
+    } else if(advG==='suppress'){
       body += '<div class="caution"><b>'+(L('诱杀密度的代价', 'The cost of mass-trapping density', 'Kos kepadatan perangkap besar-besaran'))+'</b><br>'
         + (L('把黏板从监测密度加到诱杀密度，捕到的天敌会同比例增加。豇豆田数据：黄板黏到的益虫是蓝板的 1.7 倍，其中瓢虫 63%、小花蝽 29%。诱虫灯把波长调离最佳点时，蛾没有多捕到，非靶标却明显增多。先算清楚你要牺牲多少天敌，再决定要不要铺满。',
       'Scaling cards from monitoring to mass-trapping density scales beneficial catch with it. From cowpea data: yellow caught 1.7× the beneficials of blue — 63% ladybirds, 29% Orius. And tuning a lamp off its optimum caught no extra moths but distinctly more non-targets. Price the predator loss before saturating the block.',
@@ -1337,10 +1376,10 @@ function renderAdvisor(){
     + body;
 
   el.querySelectorAll('[data-t]').forEach(function(b){
-    b.addEventListener('click',function(){ advT=b.getAttribute('data-t'); renderAdvisor(); });
+    b.addEventListener('click',function(){ advT=b.getAttribute('data-t'); renderAdvisor(); refocus('data-t', advT); });
   });
   el.querySelectorAll('[data-goal]').forEach(function(b){
-    b.addEventListener('click',function(){ advG=b.getAttribute('data-goal'); renderAdvisor(); });
+    b.addEventListener('click',function(){ advG=b.getAttribute('data-goal'); renderAdvisor(); refocus('data-goal', advG); });
   });
 }
 
@@ -1671,11 +1710,11 @@ var curView = 'spectrum';
 function renderNav(){
   var n = document.getElementById('nav'), h='';
   for(var i=0;i<VIEWS.length;i++){
-    h += '<button data-v="'+VIEWS[i]+'"'+(curView===VIEWS[i]?' class="on"':'')+'>'+t(T.nav[VIEWS[i]])+'</button>';
+    h += '<button data-v="'+VIEWS[i]+'"'+(curView===VIEWS[i]?' class="on" aria-current="page"':'')+'>'+t(T.nav[VIEWS[i]])+'</button>';
   }
   n.innerHTML = h;
   n.querySelectorAll('[data-v]').forEach(function(b){
-    b.addEventListener('click', function(){ show(b.getAttribute('data-v')); });
+    b.addEventListener('click', function(){ var v = b.getAttribute('data-v'); show(v); refocus('data-v', v); });
   });
 }
 function show(v){
@@ -1737,9 +1776,28 @@ document.getElementById('langbtn').addEventListener('click', function(){
 function pickLang(l){
   LANG = l;
   try{ localStorage.setItem('insecteye.lang', LANG); }catch(e){}
-  document.getElementById('langPick').classList.remove('on');
+  setPickerOpen(false);
   renderAll();
 }
+/* While the picker is up, everything behind it is inert (no Tab, no taps,
+   hidden from screen readers) and focus starts on the first choice. */
+function setPickerOpen(open){
+  document.getElementById('langPick').classList.toggle('on', open);
+  ['header','main','footer'].forEach(function(sel){
+    var n = document.querySelector(sel);
+    if(!n) return;
+    if(open){ n.setAttribute('inert',''); n.setAttribute('aria-hidden','true'); }
+    else { n.removeAttribute('inert'); n.removeAttribute('aria-hidden'); }
+  });
+  if(open){ var f = document.querySelector('#langPick button'); if(f) f.focus(); }
+}
+/* Fallback for browsers without `inert`: keep Tab cycling inside the picker. */
+document.getElementById('langPick').addEventListener('keydown', function(e){
+  if(e.key !== 'Tab') return;
+  var bs = this.querySelectorAll('button'), first = bs[0], last = bs[bs.length-1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
 
 var langChosen = false;
 try{
@@ -1750,7 +1808,7 @@ try{
 }catch(e){}
 
 renderAll();
-if(!langChosen) document.getElementById('langPick').classList.add('on');
+if(!langChosen) setPickerOpen(true);
 
 /* PWA: register only over http(s) — file:// testing stays untouched. The
    version in the query string means a CACHE_VERSION bump re-registers the

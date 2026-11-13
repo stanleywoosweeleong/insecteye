@@ -45,15 +45,21 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== self.location.origin) return;
 
   var key = (req.mode === 'navigate') ? './' : req;
+  /* The refresh is one promise covering fetch AND cache write, and the event
+     is kept alive until it settles — otherwise, when a cached copy answers
+     first, the browser may stop the worker mid-refresh and the update is lost. */
+  var cacheP = caches.open(CACHE);
+  var refresh = cacheP.then(function (c) {
+    return fetch(req).then(function (res) {
+      if (!res || !res.ok) return res;
+      var done = function () { return res; };
+      return c.put(key, res.clone()).then(done, done);   /* a full cache must not fail the page */
+    });
+  });
+  e.waitUntil(refresh.catch(function () {}));
   e.respondWith(
-    caches.open(CACHE).then(function (c) {
-      return c.match(key).then(function (cached) {
-        var refresh = fetch(req).then(function (res) {
-          if (res && res.ok) c.put(key, res.clone());
-          return res;
-        }).catch(function () { return cached; });
-        return cached || refresh;
-      });
+    cacheP.then(function (c) { return c.match(key); }).then(function (cached) {
+      return cached || refresh;
     })
   );
 });
