@@ -345,7 +345,7 @@ footer{color:var(--mute);font-size:0.88rem;text-align:center;padding:26px 14px 4
 
 <script>
 "use strict";
-var CACHE_VERSION = 'insecteye-v4.3.1-20261113';
+var CACHE_VERSION = 'insecteye-v4.3.2-20261114';
 var LANG = 'zh';
 var LANGS = ['zh','en','ms'];
 /* Pick the string for the current language. Malay falls back to English
@@ -1725,7 +1725,38 @@ function show(v){
   renderNav();
   window.scrollTo(0,0);
 }
+/* Re-rendering (language switch) rebuilds every view, and the same text is a
+   different height in each language. So remember *which element* sits at the
+   top of the reading area — as a path of child indexes, since the markup has
+   the same shape in every language — and scroll back to it afterwards. */
+function readTop(){
+  return document.querySelector('header').getBoundingClientRect().bottom;
+}
+function saveScrollAnchor(){
+  if(window.pageYOffset <= 0) return null;
+  var top = readTop(), node = document.getElementById('v-'+curView), path = [], r = null;
+  for(;;){
+    var kids = node.children, hit = -1;
+    for(var i=0;i<kids.length;i++){
+      var kr = kids[i].getBoundingClientRect();
+      if(kr.height > 0 && kr.bottom > top + 1){ hit = i; r = kr; break; }
+    }
+    if(hit < 0) break;
+    path.push(hit); node = kids[hit];
+  }
+  if(!r) return {y: window.pageYOffset};
+  return {path: path, frac: Math.max(0, Math.min(1, (top - r.top) / r.height)), gap: Math.max(0, r.top - top)};
+}
+function restoreScrollAnchor(a){
+  if(!a) return;
+  if(!a.path){ window.scrollTo(0, a.y); return; }
+  var node = document.getElementById('v-'+curView);
+  for(var i=0;i<a.path.length && node.children[a.path[i]];i++) node = node.children[a.path[i]];
+  var r = node.getBoundingClientRect();
+  window.scrollTo(0, window.pageYOffset + r.top + a.frac * r.height - a.gap - readTop());
+}
 function renderAll(){
+  var anchor = saveScrollAnchor();
   document.getElementById('bTitle').textContent = L('虫眼光谱', 'InsectEye', 'InsectEye');
   document.getElementById('bSub').textContent = L('昆虫视觉与趋光实验室', 'Entomology vision & phototaxis lab', 'Makmal penglihatan & fototaksis entomologi');
   document.getElementById('langbtn').textContent = L('中文', 'EN', 'BM');
@@ -1739,7 +1770,7 @@ function renderAll(){
   renderNav();
   renderSpectrum(); renderMech(); renderSpecies(); renderCoverage(); renderAdvisor();
   renderDurian(); renderVeg(); renderRefs();
-  show(curView);
+  restoreScrollAnchor(anchor);
 }
 
 document.getElementById('fsbtn').addEventListener('click', function(){
